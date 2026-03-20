@@ -7,7 +7,7 @@
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/", "dest": "/Index.html" },
     { "src": "/login", "dest": "/Login.html" },
-    { "src": "/signup", "dest": "/login.html" },
+    { "src": "/signup", "dest": "/Login.html" },
     { "src": "/generator", "dest": "/Generater.html" },
     { "src": "/pricing", "dest": "/Pricing.html" },
     { "src": "/(.*)", "dest": "/$1" }

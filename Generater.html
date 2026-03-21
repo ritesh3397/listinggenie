@@ -15,8 +15,10 @@
     .logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--teal-d)}
     .logo-text span{color:var(--teal-l)}
     .nav-right{display:flex;align-items:center;gap:1rem}
-    .credits-badge{background:var(--glow);border:1px solid rgba(13,148,136,0.2);color:var(--teal-d);padding:0.35rem 0.9rem;border-radius:50px;font-size:0.82rem;font-weight:600}
+    .credits-badge{background:var(--glow);border:1px solid rgba(13,148,136,0.2);color:var(--teal-d);padding:0.35rem 0.9rem;border-radius:50px;font-size:0.82rem;font-weight:600;cursor:pointer}
+    .credits-badge:hover{background:var(--teal);color:white}
     .logout-btn{color:#5a8f8a;font-size:0.85rem;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;font-weight:500}
+    .login-btn{background:var(--teal);color:white;padding:0.4rem 1rem;border-radius:50px;font-size:0.85rem;font-weight:500;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
     .container{max-width:720px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
     .page-title{font-family:'Syne',sans-serif;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;color:var(--text);margin-bottom:0.3rem}
     .page-sub{color:#5a8f8a;font-size:0.95rem;margin-bottom:2rem;font-weight:300}
@@ -70,35 +72,50 @@
     .error-box.show{display:block}
     .credits-warning{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:0.8rem 1rem;font-size:0.82rem;color:#92400e;display:none;margin-bottom:1rem}
     .credits-warning.show{display:block}
+    /* Modal */
     .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
     .modal-overlay.show{display:flex}
-    .modal{background:white;border-radius:24px;padding:2.5rem;max-width:480px;width:100%;text-align:center;animation:fadeUp 0.3s ease}
-    .modal h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:0.5rem}
-    .modal p{color:#5a8f8a;margin-bottom:2rem;font-size:0.9rem}
-    .modal-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin-bottom:1.5rem}
-    .modal-plan{border:1.5px solid rgba(13,148,136,0.15);border-radius:12px;padding:1rem 0.5rem;text-decoration:none;display:block;transition:all 0.2s}
+    .modal{background:white;border-radius:24px;padding:2rem;max-width:420px;width:100%;text-align:center;animation:fadeUp 0.3s ease}
+    .modal h2{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:0.5rem}
+    .modal p{color:#5a8f8a;margin-bottom:1.5rem;font-size:0.88rem}
+    .modal-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin-bottom:1.2rem}
+    .modal-plan{border:1.5px solid rgba(13,148,136,0.15);border-radius:12px;padding:1rem 0.5rem;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none}
     .modal-plan:hover{border-color:var(--teal);background:var(--glow)}
     .modal-plan.popular{border-color:var(--teal);background:var(--glow)}
-    .modal-plan-name{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.2rem}
-    .modal-plan-price{font-size:1.1rem;font-weight:700;color:var(--teal)}
-    .modal-plan-cr{font-size:0.72rem;color:#7db8b3}
-    .modal-later{color:#7db8b3;font-size:0.85rem;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif}
+    .modal-plan-emoji{font-size:1.4rem;margin-bottom:0.3rem}
+    .modal-plan-name{font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:0.2rem}
+    .modal-plan-price{font-size:1rem;font-weight:700;color:var(--teal)}
+    .modal-plan-cr{font-size:0.68rem;color:#7db8b3}
+    .modal-later{color:#7db8b3;font-size:0.82rem;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;margin-top:0.5rem;display:block;width:100%;text-align:center}
+    /* Current Plan Modal */
+    .plan-info-box{background:var(--glow);border:1px solid rgba(13,148,136,0.2);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem}
+    .plan-info-name{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--teal-d);margin-bottom:0.3rem}
+    .plan-info-credits{font-size:0.88rem;color:#5a8f8a}
+    /* Login Modal */
+    .login-modal-form{text-align:left}
+    .login-modal-form input{margin-bottom:0.8rem}
+    .login-submit-btn{width:100%;padding:0.85rem;background:var(--teal);color:white;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-top:0.5rem}
+    .login-divider{text-align:center;color:#7db8b3;font-size:0.78rem;margin:0.8rem 0}
+    .google-btn-modal{width:100%;padding:0.75rem;border:1.5px solid rgba(13,148,136,0.2);border-radius:10px;background:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;color:var(--text);display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.5rem}
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){nav{padding:0.9rem 1rem}.nav-right{gap:0.5rem}.modal-plans{grid-template-columns:repeat(2,1fr)}}
   </style>
 </head>
 <body>
+
 <nav>
   <a href="/" class="logo"><span class="logo-text">Listing<span>Gennie</span></span></a>
   <div class="nav-right">
-    <div class="credits-badge" id="creditsBadge">⚡ -- credits</div>
-    <button class="logout-btn" onclick="logout()">Sign Out</button>
+    <div class="credits-badge" id="creditsBadge" onclick="showPlanModal()">⚡ 10 credits</div>
+    <div id="navAuthBtn"></div>
   </div>
 </nav>
+
 <div class="container">
   <h1 class="page-title">Generate Your Listing</h1>
   <p class="page-sub">Fill in the details and let AI do the writing.</p>
-  <div class="credits-warning" id="creditsWarning">⚠️ Only <span id="creditsLeft"></span> credits remaining! <a href="/pricing" style="color:var(--teal-d);font-weight:600">Upgrade now →</a></div>
+  <div class="credits-warning" id="creditsWarning">⚠️ Only <span id="creditsLeft"></span> credits remaining! <span onclick="showUpgradeModal()" style="color:var(--teal-d);font-weight:600;cursor:pointer">Upgrade now →</span></div>
   <div class="card">
     <div class="mode-toggle">
       <button class="mode-btn active" id="singleBtn" onclick="setMode('single')">Single</button>
@@ -181,102 +198,91 @@
     </div>
   </div>
 </div>
+
+<!-- Upgrade Modal -->
 <div class="modal-overlay" id="upgradeModal">
   <div class="modal">
-    <h2>⚡ Credits Finished!</h2>
-    <p>Your free credits are used up. Upgrade to keep generating!</p>
+    <h2>⚡ Credits Khatam!</h2>
+    <p>Upgrade karo aur unlimited listings banao!</p>
     <div class="modal-plans">
-      <a href="/pricing" class="modal-plan">
-        <div class="modal-plan-name">🌱 Starter</div>
+      <div class="modal-plan" onclick="choosePlan('starter')">
+        <div class="modal-plan-emoji">🌱</div>
+        <div class="modal-plan-name">Starter</div>
         <div class="modal-plan-price">$9</div>
         <div class="modal-plan-cr">75 credits</div>
-      </a>
-      <a href="/pricing" class="modal-plan popular">
-        <div style="font-size:0.65rem;font-weight:700;color:var(--teal);margin-bottom:0.2rem">⭐ POPULAR</div>
-        <div class="modal-plan-name">⚡ Growth</div>
+      </div>
+      <div class="modal-plan popular" onclick="choosePlan('growth')">
+        <div style="font-size:0.6rem;font-weight:700;color:var(--teal);margin-bottom:0.2rem">⭐ POPULAR</div>
+        <div class="modal-plan-emoji">⚡</div>
+        <div class="modal-plan-name">Growth</div>
         <div class="modal-plan-price">$19</div>
         <div class="modal-plan-cr">250 credits</div>
-      </a>
-      <a href="/pricing" class="modal-plan">
-        <div class="modal-plan-name">👑 Ultimate</div>
+      </div>
+      <div class="modal-plan" onclick="choosePlan('ultimate')">
+        <div class="modal-plan-emoji">👑</div>
+        <div class="modal-plan-name">Ultimate</div>
         <div class="modal-plan-price">$199</div>
         <div class="modal-plan-cr">Unlimited/yr</div>
-      </a>
+      </div>
     </div>
-    <button class="modal-later" onclick="closeModal()">Maybe later</button>
+    <button class="modal-later" onclick="closeUpgradeModal()">Maybe later</button>
   </div>
 </div>
+
+<!-- Plan Info Modal -->
+<div class="modal-overlay" id="planModal">
+  <div class="modal">
+    <h2>📊 Your Plan</h2>
+    <div class="plan-info-box">
+      <div class="plan-info-name" id="planName">Free Trial</div>
+      <div class="plan-info-credits" id="planCredits">⚡ 10 credits remaining</div>
+    </div>
+    <p>Upgrade for more credits and features!</p>
+    <div class="modal-plans">
+      <div class="modal-plan" onclick="choosePlan('starter');closePlanModal()">
+        <div class="modal-plan-emoji">🌱</div>
+        <div class="modal-plan-name">Starter</div>
+        <div class="modal-plan-price">$9</div>
+        <div class="modal-plan-cr">75 credits</div>
+      </div>
+      <div class="modal-plan popular" onclick="choosePlan('growth');closePlanModal()">
+        <div style="font-size:0.6rem;font-weight:700;color:var(--teal);margin-bottom:0.2rem">⭐ POPULAR</div>
+        <div class="modal-plan-emoji">⚡</div>
+        <div class="modal-plan-name">Growth</div>
+        <div class="modal-plan-price">$19</div>
+        <div class="modal-plan-cr">250 credits</div>
+      </div>
+      <div class="modal-plan" onclick="choosePlan('ultimate');closePlanModal()">
+        <div class="modal-plan-emoji">👑</div>
+        <div class="modal-plan-name">Ultimate</div>
+        <div class="modal-plan-price">$199</div>
+        <div class="modal-plan-cr">Unlimited/yr</div>
+      </div>
+    </div>
+    <button class="modal-later" onclick="closePlanModal()">Close</button>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <h2>🔐 Login to Continue</h2>
+    <p>Login karo aur apna plan activate karo!</p>
+    <button class="google-btn-modal" onclick="loginWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+      Continue with Google
+    </button>
+    <div class="login-divider">or</div>
+    <div class="login-modal-form">
+      <input type="email" id="modalEmail" placeholder="your@email.com"/>
+      <input type="password" id="modalPassword" placeholder="Password"/>
+      <button class="login-submit-btn" onclick="loginWithEmail()">Login & Continue</button>
+    </div>
+    <div id="loginError" style="color:#dc2626;font-size:0.82rem;margin-top:0.5rem;display:none"></div>
+    <button class="modal-later" onclick="closeLoginModal()">Cancel</button>
+  </div>
+</div>
+
 <script>
   const SUPABASE_URL = 'https://odgroqveswuqlmpaydwc.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kZ3JvcXZlc3d1cWxtcGF5ZHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzA1MDgsImV4cCI6MjA4ODcwNjUwOH0.Pu68pYzFSFFpoOEnyWKKG4LKGUk4idPnTEYu6McbNIg';
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  let currentSession = null;
-  sb.auth.getSession().then(({ data: { session } }) => {
-    if (!session) window.location.href = '/login';
-    else { currentSession = session; loadCredits(); }
-  });
-  async function loadCredits() {
-    try {
-      const res = await fetch('/api/credits', { headers: { 'Authorization': `Bearer ${currentSession.access_token}` } });
-      const data = await res.json();
-      updateCreditsUI(data.credits);
-    } catch(e) {}
-  }
-  function updateCreditsUI(credits) {
-    document.getElementById('creditsBadge').textContent = `⚡ ${credits} credits`;
-    const warning = document.getElementById('creditsWarning');
-    if (credits <= 2 && credits > 0) { document.getElementById('creditsLeft').textContent = credits; warning.classList.add('show'); }
-    else warning.classList.remove('show');
-  }
-  async function logout() { await sb.auth.signOut(); window.location.href = '/login'; }
-  let mode = 'single';
-  function setMode(m) {
-    mode = m;
-    document.getElementById('singleBtn').classList.toggle('active', m === 'single');
-    document.getElementById('bulkBtn').classList.toggle('active', m === 'bulk');
-    document.getElementById('singleArea').classList.toggle('hide', m === 'bulk');
-    document.getElementById('bulkArea').classList.toggle('show', m === 'bulk');
-  }
-  async function generate() {
-    const platform = document.querySelector('input[name="platform"]:checked').value;
-    const tone = document.querySelector('input[name="tone"]:checked').value;
-    const keywords = document.getElementById('keywords').value.trim();
-    const errorBox = document.getElementById('errorBox');
-    const loader = document.getElementById('loader');
-    const resultsCard = document.getElementById('resultsCard');
-    const generateBtn = document.getElementById('generateBtn');
-    let productName = mode === 'single' ? document.getElementById('productName').value.trim() : document.getElementById('bulkProducts').value.trim().split('\n')[0];
-    if (!productName) return showError('Please enter a product name!');
-    errorBox.classList.remove('show'); resultsCard.classList.remove('show');
-    generateBtn.disabled = true; loader.classList.add('show');
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentSession?.access_token || ''}` },
-        body: JSON.stringify({ productName, platform, tone, keywords })
-      });
-      const data = await res.json();
-      if (!res.ok) { if (data.error === 'NO_CREDITS') { document.getElementById('upgradeModal').classList.add('show'); return; } throw new Error(data.error || 'Server error'); }
-      const result = data.data;
-      document.getElementById('titleResult').textContent = result.title || '';
-      document.getElementById('descResult').textContent = result.description || '';
-      document.getElementById('bulletsResult').textContent = result.bullets || '';
-      const score = result.score || 75;
-      document.getElementById('scoreNum').textContent = score + '/100';
-      document.getElementById('scoreFill').style.width = score + '%';
-      document.getElementById('scoreFeedback').textContent = result.feedback || '';
-      if (result.creditsRemaining !== undefined) updateCreditsUI(result.creditsRemaining);
-      loader.classList.remove('show'); resultsCard.classList.add('show');
-      resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } catch(err) { loader.classList.remove('show'); showError('Error: ' + err.message); }
-    finally { generateBtn.disabled = false; }
-  }
-  function showError(msg) { const box = document.getElementById('errorBox'); box.textContent = msg; box.classList.add('show'); document.getElementById('loader').classList.remove('show'); }
-  function copyText(id) { const text = document.getElementById(id).textContent; navigator.clipboard.writeText(text).then(() => { event.target.textContent = 'Copied!'; setTimeout(() => event.target.textContent = 'Copy', 1500); }); }
-  function copyAll() { const all = `TITLE:\n${document.getElementById('titleResult').textContent}\n\nDESCRIPTION:\n${document.getElementById('descResult').textContent}\n\nKEY FEATURES:\n${document.getElementById('bulletsResult').textContent}`; navigator.clipboard.writeText(all).then(() => { event.target.textContent = '✅ Copied!'; setTimeout(() => event.target.textContent = 'Copy All', 2000); }); }
-  function closeModal() { document.getElementById('upgradeModal').classList.remove('show'); }
-  document.getElementById('productName')?.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
-</script>
-</body>
-  </html>
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kZ3JvcXZlc3d1cWxtcGF5ZHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzA1MDgsImV4cCI6MjA4ODcwNjUwO

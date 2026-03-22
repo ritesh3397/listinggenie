@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/login", "destination": "/Login.html" },
@@ -8,4 +13,3 @@
     { "source": "/", "destination": "/Index.html" }
   ]
 }
-

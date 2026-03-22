@@ -1,9 +1,7 @@
 {
   "name": "listinggennie",
   "version": "1.0.0",
-  "description": "AI-powered product listing generator",
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
-    "groq-sdk": "^0.3.0"
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

@@ -43,6 +43,14 @@ Keywords: ${keywords}`
 
     const data = await response.json();
 
+    console.log("FULL RESPONSE:", data);
+
+if (!data.choices) {
+  return res.status(500).json({
+    error: "AI response error",
+    full: data
+  });
+}
     const text = data.choices[0].message.content;
 
     let parsed;

@@ -8,6 +8,7 @@
     }
   },
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/login", "destination": "/Login.html" },
     { "source": "/signup", "destination": "/login.html" },
     { "source": "/generator", "destination": "/Generater.html" },

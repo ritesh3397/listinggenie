@@ -63,7 +63,9 @@ async function generate() {
     });
 
     const data = await res.json();
+    console.log(data);
 
+    alert(JSON.stringify(data));
     loader.style.display = "none";
 
     if (!res.ok) {

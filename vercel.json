@@ -1,16 +1,8 @@
 {
-  "functions": {
-    "api/credits.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/generate.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/login", "destination": "/Login.html" },
-    { "source": "/signup", "destination": "/login.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/signup", "destination": "/signup.html" },
     { "source": "/generator", "destination": "/Generater.html" },
     { "source": "/pricing", "destination": "/Pricing.html" },
     { "source": "/", "destination": "/Index.html" }

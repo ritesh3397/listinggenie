@@ -1,55 +1,27 @@
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { product, keywords } = req.body;
+
+  if (!product) {
+    return res.status(400).json({ error: "Product required" });
+  }
 
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(200).json({ credits: 10, plan: 'free' });
-    }
+    // 🔥 FAKE AI (testing ke liye)
+    const title = `🔥 ${product} - Best Quality Product`;
+    const description = `This ${product} is perfect for daily use. ${keywords || ""} High quality and best in market.`;
+    const bullets = `✔️ Premium Quality\n✔️ Affordable Price\n✔️ Best Choice`;
 
-    const token = authHeader.split(' ')[1];
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
-    // Get user from token
-    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'apikey': SUPABASE_SERVICE_KEY
-      }
+    return res.status(200).json({
+      title,
+      description,
+      bullets
     });
-    const userData = await userRes.json();
-    if (!userData.id) return res.status(401).json({ error: 'Invalid token' });
 
-    // Get credits from database
-    const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userData.id}&select=credits,plan`, {
-      headers: {
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'apikey': SUPABASE_SERVICE_KEY
-      }
-    });
-    const dbData = await dbRes.json();
-
-    if (!dbData || dbData.length === 0) {
-      // Create user
-      await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'apikey': SUPABASE_SERVICE_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id: userData.id, email: userData.email, credits: 10, plan: 'free' })
-      });
-      return res.status(200).json({ credits: 10, plan: 'free', email: userData.email });
-    }
-
-    return res.status(200).json({ credits: dbData[0].credits, plan: dbData[0].plan });
-
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
+  } catch (err) {
+    return res.status(500).json({ error: "Server error" });
   }
-};
+}

@@ -10,18 +10,51 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 🔥 FAKE AI (testing ke liye)
-    const title = `🔥 ${product} - Best Quality Product`;
-    const description = `This ${product} is perfect for daily use. ${keywords || ""} High quality and best in market.`;
-    const bullets = `✔️ Premium Quality\n✔️ Affordable Price\n✔️ Best Choice`;
+    const response = await fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.XAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "grok-beta",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert e-commerce copywriter."
+          },
+          {
+            role: "user",
+            content: `ONLY return JSON. No extra text.
 
-    return res.status(200).json({
-      title,
-      description,
-      bullets
+{
+ "title": "",
+ "description": "",
+ "bullets": ""
+}
+
+Product: ${product}
+Keywords: ${keywords}`
+          }
+        ],
+        temperature: 0.7
+      })
     });
 
+    const data = await response.json();
+
+    const text = data.choices[0].message.content;
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return res.status(500).json({ error: "AI format error", raw: text });
+    }
+
+    return res.status(200).json(parsed);
+
   } catch (err) {
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: err.message });
   }
 }

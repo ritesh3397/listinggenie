@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // ❌ Only POST allowed
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -6,18 +7,19 @@ export default async function handler(req, res) {
   try {
     const { product, platform, tone, keywords } = req.body;
 
+    // ❌ Validation
     if (!product) {
       return res.status(400).json({ error: "Product name required" });
     }
 
+    // 🧠 Powerful Prompt
     const prompt = `
-const prompt = `
-You are an expert eCommerce copywriter who writes HIGH-CONVERTING listings that increase sales.
+You are an expert eCommerce copywriter who writes HIGH-CONVERTING product listings.
 
-Write a powerful product listing with:
-- Attention-grabbing title
-- Emotion-driven description (pain + benefit + desire)
-- Persuasive bullet points (benefits, not just features)
+Write:
+- A catchy, scroll-stopping TITLE
+- A persuasive DESCRIPTION (focus on benefits, emotions, and desire)
+- Bullet points that SELL (benefits > features)
 
 Product: ${product}
 Platform: ${platform}
@@ -25,19 +27,22 @@ Tone: ${tone}
 Keywords: ${keywords}
 
 Rules:
-- Use simple but persuasive language
-- Focus on benefits, not just features
-- Make it feel premium and trustworthy
-- DO NOT use generic phrases
+- Keep language simple but powerful
+- Avoid generic phrases
+- Make it premium and trustworthy
+- Focus on conversion
 
-Return ONLY valid JSON:
+Return ONLY valid JSON. No extra text.
 
+Format:
 {
   "title": "...",
   "description": "...",
   "bullets": "..."
 }
 `;
+
+    // 🚀 Call Groq API
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -58,8 +63,10 @@ Return ONLY valid JSON:
 
     const data = await response.json();
 
+    // 🔍 Debug (optional)
     console.log("FULL AI RESPONSE:", JSON.stringify(data, null, 2));
 
+    // 🧠 Extract text
     const text = data?.choices?.[0]?.message?.content;
 
     if (!text) {
@@ -72,11 +79,11 @@ Return ONLY valid JSON:
     let parsed;
 
     try {
-      // 🔥 JSON extract fix (important)
+      // 🔥 Extract JSON safely (even if AI adds extra text)
       const jsonMatch = text.match(/\{[\s\S]*\}/);
 
       if (!jsonMatch) {
-        throw new Error("No JSON found");
+        throw new Error("No JSON found in AI response");
       }
 
       parsed = JSON.parse(jsonMatch[0]);
@@ -88,6 +95,7 @@ Return ONLY valid JSON:
       });
     }
 
+    // ✅ Final response
     return res.status(200).json(parsed);
 
   } catch (err) {

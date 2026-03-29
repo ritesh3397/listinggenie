@@ -41,7 +41,17 @@ Keywords: ${keywords}`
       })
     });
 
-    const data = await response.json();
+    const textResponse = await response.text();
+
+let data;
+try {
+  data = JSON.parse(textResponse);
+} catch {
+  return res.status(500).json({
+    error: "Invalid JSON from AI",
+    raw: textResponse
+  });
+}
 
     console.log("FULL RESPONSE:", data);
 

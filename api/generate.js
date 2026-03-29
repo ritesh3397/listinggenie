@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     const { product, platform, tone, keywords, email } = req.body;
 
-    // 🔥 TEMP FIX (jab tak login nahi bana)
+    // 🔥 TEMP email (jab tak login nahi bana)
     const userEmail = email || "ritesh01h2@gmail.com";
 
     if (!product) {
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "No credits left" });
     }
 
-    // ✅ 3. Call AI
+    // ✅ 3. Call Groq AI
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -44,34 +44,40 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "You are a world-class e-commerce copywriter who writes highly persuasive listings."
+            content: "You are an expert e-commerce copywriter."
           },
           {
             role: "user",
             content: `
-Create a HIGH-CONVERTING product listing.
+Generate a product listing.
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-Return ONLY JSON like:
+STRICT RULES:
+- Return ONLY valid JSON
+- No explanation
+- No extra text
+- No markdown
+
+Format:
 {
- "title": "...",
- "description": "...",
- "bullets": "..."
+"title": "string",
+"description": "string",
+"bullets": "string"
 }
 `
           }
         ],
-        temperature: 0.8
+        temperature: 0.7
       })
     });
 
     const aiData = await aiRes.json();
 
-    const content = aiData?.choices?.[0]?.message?.content;
+    const content = aiData?.choices?.[0]?.message?.content || "";
 
     if (!content) {
       return res.status(500).json({
@@ -80,15 +86,16 @@ Return ONLY JSON like:
       });
     }
 
-    // 🔥 SAFE JSON EXTRACT (MOST IMPORTANT FIX)
+    // 🔥 CLEAN + PARSE JSON SAFE
     let parsed;
 
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      parsed = JSON.parse(jsonMatch[0]);
+      const clean = content.replace(/```json|```/g, "").trim();
+      const match = clean.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(match[0]);
     } catch (e) {
       return res.status(500).json({
-        error: "AI returned invalid JSON",
+        error: "Invalid JSON from AI",
         raw: content
       });
     }
@@ -99,7 +106,7 @@ Return ONLY JSON like:
       .update({ credits: user.credits - 1 })
       .eq("email", userEmail);
 
-    // ✅ 5. Return result
+    // ✅ 5. Send response
     return res.status(200).json(parsed);
 
   } catch (err) {

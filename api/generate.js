@@ -1,5 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
-
+console.log("ENV CHECK:", {
+  supabase: process.env.SUPABASE_URL ? "OK" : "MISSING",
+  groq: process.env.GROQ_API_KEY ? "OK" : "MISSING"
+});
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -9,7 +12,7 @@ export default async function handler(req, res) {
   try {
     const { product, platform, tone, keywords, email } = req.body;
 
-    // 🔥 TEMP email (jab tak login nahi bana)
+    // 🔥 TEMP email 
     const userEmail = email || "ritesh01h2@gmail.com";
 
     if (!product) {

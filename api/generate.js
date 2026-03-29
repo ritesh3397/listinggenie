@@ -1,107 +1,100 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
 export default async function handler(req, res) {
-  // ❌ Only POST allowed
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
-    const { product, platform, tone, keywords } = req.body;
+    const { product, platform, tone, keywords, email } = req.body;
 
-    // ❌ Validation
-    if (!product) {
-      return res.status(400).json({ error: "Product name required" });
+    if (!product || !email) {
+      return res.status(400).json({ error: "Missing fields" });
     }
 
-    // 🧠 Powerful Prompt
-    const prompt = `
-You are an expert eCommerce copywriter who writes HIGH-CONVERTING product listings.
+    // ✅ 1. Get user
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
 
-Write:
-- A catchy, scroll-stopping TITLE
-- A persuasive DESCRIPTION (focus on benefits, emotions, and desire)
-- Bullet points that SELL (benefits > features)
+    if (userError || !user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-Product: ${product}
-Platform: ${platform}
-Tone: ${tone}
-Keywords: ${keywords}
+    // ✅ 2. Check credits
+    if (user.credits <= 0) {
+      return res.status(403).json({ error: "No credits left" });
+    }
 
-Rules:
-- Keep language simple but powerful
-- Avoid generic phrases
-- Make it premium and trustworthy
-- Focus on conversion
-
-Return ONLY valid JSON. No extra text.
-
-Format:
-{
-  "title": "...",
-  "description": "...",
-  "bullets": "..."
-}
-`;
-
-    // 🚀 Call Groq API
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    // ✅ 3. Call AI (Groq)
+    const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama3-8b-8192",
         messages: [
           {
+            role: "system",
+            content: "You are an expert e-commerce copywriter."
+          },
+          {
             role: "user",
-            content: prompt
+            content: `
+Create high-converting product listing:
+
+Product: ${product}
+Platform: ${platform}
+Tone: ${tone}
+Keywords: ${keywords}
+
+Return ONLY JSON:
+{
+ "title": "...",
+ "description": "...",
+ "bullets": "..."
+}
+            `
           }
         ],
         temperature: 0.7
       })
     });
 
-    const data = await response.json();
+    const aiData = await aiRes.json();
 
-    // 🔍 Debug (optional)
-    console.log("FULL AI RESPONSE:", JSON.stringify(data, null, 2));
+    const content = aiData?.choices?.[0]?.message?.content;
 
-    // 🧠 Extract text
-    const text = data?.choices?.[0]?.message?.content;
-
-    if (!text) {
-      return res.status(500).json({
-        error: "AI returned empty response",
-        full: data
-      });
+    if (!content) {
+      return res.status(500).json({ error: "AI empty response", full: aiData });
     }
 
+    // ✅ 4. Parse AI JSON safely
     let parsed;
-
     try {
-      // 🔥 Extract JSON safely (even if AI adds extra text)
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-
-      if (!jsonMatch) {
-        throw new Error("No JSON found in AI response");
-      }
-
-      parsed = JSON.parse(jsonMatch[0]);
-
+      parsed = JSON.parse(content);
     } catch (e) {
       return res.status(500).json({
         error: "Invalid JSON from AI",
-        raw: text
+        raw: content
       });
     }
 
-    // ✅ Final response
-    return res.status(200).json(parsed);
+    // ✅ 5. Deduct credit
+    await supabase
+      .from("users")
+      .update({ credits: user.credits - 1 })
+      .eq("email", email);
+
+    // ✅ 6. Return result
+    res.status(200).json(parsed);
 
   } catch (err) {
-    return res.status(500).json({
-      error: "Server error",
-      message: err.message
-    });
+    res.status(500).json({ error: err.message });
   }
 }

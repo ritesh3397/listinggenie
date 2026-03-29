@@ -13,14 +13,16 @@ export default async function handler(req, res) {
     const prompt = `
 You are a professional eCommerce copywriter.
 
-Create a high-converting product listing.
+Create a HIGH-CONVERTING product listing.
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-Return STRICT JSON in this format:
+Return ONLY valid JSON. No extra text.
+
+Format:
 {
   "title": "...",
   "description": "...",
@@ -35,7 +37,7 @@ Return STRICT JSON in this format:
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile" 
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "user",
@@ -48,10 +50,8 @@ Return STRICT JSON in this format:
 
     const data = await response.json();
 
-    // 🔥 DEBUG (important)
     console.log("FULL AI RESPONSE:", JSON.stringify(data, null, 2));
 
-    // ✅ SAFE PARSE
     const text = data?.choices?.[0]?.message?.content;
 
     if (!text) {
@@ -64,7 +64,15 @@ Return STRICT JSON in this format:
     let parsed;
 
     try {
-      parsed = JSON.parse(text);
+      // 🔥 JSON extract fix (important)
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+      if (!jsonMatch) {
+        throw new Error("No JSON found");
+      }
+
+      parsed = JSON.parse(jsonMatch[0]);
+
     } catch (e) {
       return res.status(500).json({
         error: "Invalid JSON from AI",

@@ -9,15 +9,18 @@ export default async function handler(req, res) {
   try {
     const { product, platform, tone, keywords, email } = req.body;
 
-    if (!product || !email) {
-      return res.status(400).json({ error: "Missing fields" });
+    // 🔥 TEMP FIX (jab tak login nahi bana)
+    const userEmail = email || "ritesh01h2@gmail.com";
+
+    if (!product) {
+      return res.status(400).json({ error: "Product required" });
     }
 
     // ✅ 1. Get user
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("*")
-      .eq("email", email)
+      .eq("email", userEmail)
       .single();
 
     if (userError || !user) {
@@ -29,7 +32,7 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "No credits left" });
     }
 
-    // ✅ 3. Call AI (Groq)
+    // ✅ 3. Call AI
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -41,28 +44,28 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "You are an expert e-commerce copywriter."
+            content: "You are a world-class e-commerce copywriter who writes highly persuasive listings."
           },
           {
             role: "user",
             content: `
-Create high-converting product listing:
+Create a HIGH-CONVERTING product listing.
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-Return ONLY JSON:
+Return ONLY JSON like:
 {
  "title": "...",
  "description": "...",
  "bullets": "..."
 }
-            `
+`
           }
         ],
-        temperature: 0.7
+        temperature: 0.8
       })
     });
 
@@ -71,30 +74,37 @@ Return ONLY JSON:
     const content = aiData?.choices?.[0]?.message?.content;
 
     if (!content) {
-      return res.status(500).json({ error: "AI empty response", full: aiData });
+      return res.status(500).json({
+        error: "AI empty response",
+        full: aiData
+      });
     }
 
-    // ✅ 4. Parse AI JSON safely
+    // 🔥 SAFE JSON EXTRACT (MOST IMPORTANT FIX)
     let parsed;
+
     try {
-      parsed = JSON.parse(content);
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch[0]);
     } catch (e) {
       return res.status(500).json({
-        error: "Invalid JSON from AI",
+        error: "AI returned invalid JSON",
         raw: content
       });
     }
 
-    // ✅ 5. Deduct credit
+    // ✅ 4. Deduct credit
     await supabase
       .from("users")
       .update({ credits: user.credits - 1 })
-      .eq("email", email);
+      .eq("email", userEmail);
 
-    // ✅ 6. Return result
-    res.status(200).json(parsed);
+    // ✅ 5. Return result
+    return res.status(200).json(parsed);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message
+    });
   }
 }

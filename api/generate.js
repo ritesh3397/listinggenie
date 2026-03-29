@@ -11,25 +11,33 @@ export default async function handler(req, res) {
     }
 
     const prompt = `
-You are a professional eCommerce copywriter.
+const prompt = `
+You are an expert eCommerce copywriter who writes HIGH-CONVERTING listings that increase sales.
 
-Create a HIGH-CONVERTING product listing.
+Write a powerful product listing with:
+- Attention-grabbing title
+- Emotion-driven description (pain + benefit + desire)
+- Persuasive bullet points (benefits, not just features)
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-Return ONLY valid JSON. No extra text.
+Rules:
+- Use simple but persuasive language
+- Focus on benefits, not just features
+- Make it feel premium and trustworthy
+- DO NOT use generic phrases
 
-Format:
+Return ONLY valid JSON:
+
 {
   "title": "...",
   "description": "...",
   "bullets": "..."
 }
 `;
-
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {

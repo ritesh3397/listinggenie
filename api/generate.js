@@ -37,58 +37,59 @@ export default async function handler(req, res) {
 
     // ✅ 3. Call Groq AI
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-        "Content-Type": "application/json"
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "mixtral-8x7b-32768"
+    messages: [
+      {
+        role: "system",
+        content: "You are a professional e-commerce copywriter. Always return valid JSON only."
       },
-      body: JSON.stringify({
-        model: "llama3-8b-8192",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert e-commerce copywriter."
-          },
-          {
-            role: "user",
-            content: `
-Generate a product listing.
+      {
+        role: "user",
+        content: `Create a high converting product listing.
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-STRICT RULES:
-- Return ONLY valid JSON
-- No explanation
-- No extra text
-- No markdown
-
-Format:
+Return ONLY JSON:
 {
-"title": "string",
-"description": "string",
-"bullets": "string"
+  "title": "...",
+  "description": "...",
+  "bullets": "..."
+}`
+      }
+    ],
+    temperature: 0.7
+  })
+});
+
+const aiData = await aiRes.json();
+
+// 🔥 DEBUG (important)
+console.log("AI FULL RESPONSE:", aiData);
+
+if (!aiData || !aiData.choices || aiData.choices.length === 0) {
+  return res.status(500).json({
+    error: "AI returned no choices",
+    full: aiData
+  });
 }
-`
-          }
-        ],
-        temperature: 0.7
-      })
-    });
 
-    const aiData = await aiRes.json();
+const content = aiData.choices[0]?.message?.content;
 
-    const content = aiData?.choices?.[0]?.message?.content || "";
-
-    if (!content) {
-      return res.status(500).json({
-        error: "AI empty response",
-        full: aiData
-      });
-    }
-
+if (!content) {
+  return res.status(500).json({
+    error: "AI empty response",
+    full: aiData
+  });
+}
     // 🔥 CLEAN + PARSE JSON SAFE
     let parsed;
 

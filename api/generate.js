@@ -1,8 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
+
+// 🔥 ENV DEBUG
 console.log("ENV CHECK:", {
   supabase: process.env.SUPABASE_URL ? "OK" : "MISSING",
   groq: process.env.GROQ_API_KEY ? "OK" : "MISSING"
 });
+
+// 🔥 Supabase init
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -12,87 +16,96 @@ export default async function handler(req, res) {
   try {
     const { product, platform, tone, keywords, email } = req.body;
 
-    // 🔥 TEMP email 
-    const userEmail = email || "ritesh01h2@gmail.com";
+    const userEmail = email || "rites0h12h@gmail.com";
 
+    // ✅ Validate
     if (!product) {
       return res.status(400).json({ error: "Product required" });
     }
 
-    // ✅ 1. Get user
-    const { data: user, error: userError } = await supabase
+    // ✅ Get user
+    let { data: user, error: userError } = await supabase
       .from("users")
       .select("*")
       .eq("email", userEmail)
       .single();
 
-    if (userError || !user) {
-      return res.status(404).json({ error: "User not found" });
+    // 🔥 Auto create user if not exists
+    if (!user) {
+      const { data: newUser } = await supabase
+        .from("users")
+        .insert([{ email: userEmail, credits: 10, plan: "free" }])
+        .select()
+        .single();
+
+      user = newUser;
     }
 
-    // ✅ 2. Check credits
+    // ✅ Check credits
     if (user.credits <= 0) {
       return res.status(403).json({ error: "No credits left" });
     }
 
-    // ✅ 3. Call Groq AI
+    // ✅ Call Groq AI
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    model: "mixtral-8x7b-32768"
-    messages: [
-      {
-        role: "system",
-        content: "You are a professional e-commerce copywriter. Always return valid JSON only."
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+        "Content-Type": "application/json"
       },
-      {
-        role: "user",
-        content: `Create a high converting product listing.
+      body: JSON.stringify({
+        model: "mixtral-8x7b-32768", // 🔥 stable model
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional e-commerce copywriter. Always return ONLY valid JSON."
+          },
+          {
+            role: "user",
+            content: `You MUST return ONLY valid JSON. No text outside JSON.
+
+Create high converting product listing:
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-Return ONLY JSON:
+Output:
 {
   "title": "...",
   "description": "...",
   "bullets": "..."
 }`
-      }
-    ],
-    temperature: 0.7
-  })
-});
+          }
+        ],
+        temperature: 0.7
+      })
+    });
 
-const aiData = await aiRes.json();
+    const aiData = await aiRes.json();
 
-// 🔥 DEBUG (important)
-console.log("AI FULL RESPONSE:", aiData);
+    console.log("AI FULL RESPONSE:", aiData);
 
-if (!aiData || !aiData.choices || aiData.choices.length === 0) {
-  return res.status(500).json({
-    error: "AI returned no choices",
-    full: aiData
-  });
-}
+    // ✅ SAFE CHECK
+    if (!aiData || !aiData.choices || aiData.choices.length === 0) {
+      return res.status(500).json({
+        error: "AI returned no choices",
+        full: aiData
+      });
+    }
 
-const content = aiData.choices[0]?.message?.content;
+    const content = aiData.choices[0]?.message?.content;
 
-if (!content) {
-  return res.status(500).json({
-    error: "AI empty response",
-    full: aiData
-  });
-}
-    // 🔥 CLEAN + PARSE JSON SAFE
+    if (!content) {
+      return res.status(500).json({
+        error: "AI empty response",
+        full: aiData
+      });
+    }
+
+    // ✅ CLEAN + PARSE JSON
     let parsed;
-
     try {
       const clean = content.replace(/```json|```/g, "").trim();
       const match = clean.match(/\{[\s\S]*\}/);
@@ -104,13 +117,13 @@ if (!content) {
       });
     }
 
-    // ✅ 4. Deduct credit
+    // ✅ Deduct credit
     await supabase
       .from("users")
       .update({ credits: user.credits - 1 })
       .eq("email", userEmail);
 
-    // ✅ 5. Send response
+    // ✅ Send result
     return res.status(200).json(parsed);
 
   } catch (err) {

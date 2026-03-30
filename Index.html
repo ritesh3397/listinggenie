@@ -172,7 +172,13 @@ async function generate(){
       headers:{
         "Content-Type":"application/json"
       },
-      body:JSON.stringify({ product, platform, tone, keywords })
+      body: JSON.stringify({
+  product,
+  platform,
+  tone,
+  keywords,
+  email: "rites0h12h@gmail.com"
+})
     });
 
     // 🔥 SAFE RESPONSE HANDLING

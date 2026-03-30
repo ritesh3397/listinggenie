@@ -85,6 +85,18 @@ Output:
 
     const aiData = await aiRes.json();
 
+// 🔥 FULL DEBUG
+console.log("STATUS:", aiRes.status);
+console.log("AI RESPONSE:", JSON.stringify(aiData, null, 2));
+
+// ❌ when api error 
+if (!aiRes.ok) {
+  return res.status(500).json({
+    error: "Groq API Error",
+    details: aiData
+  });
+}
+
     console.log("AI FULL RESPONSE:", aiData);
 
     // ✅ SAFE CHECK

@@ -1,12 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-// 🔥 ENV DEBUG
-console.log("ENV CHECK:", {
-  supabase: process.env.SUPABASE_URL ? "OK" : "MISSING",
-  groq: process.env.GROQ_API_KEY ? "OK" : "MISSING"
-});
-
-// 🔥 Supabase init
+// ✅ Supabase init
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -18,60 +12,61 @@ export default async function handler(req, res) {
 
     const userEmail = email || "rites0h12h@gmail.com";
 
-    // ✅ Validate
+    // ✅ Validate input
     if (!product) {
       return res.status(400).json({ error: "Product required" });
     }
 
+    // ✅ Check ENV (debug)
+    console.log("KEY LENGTH:", process.env.GROQ_API_KEY?.length);
+
     // ✅ Get user
-    let { data: user, error: userError } = await supabase
+    let { data: user } = await supabase
       .from("users")
       .select("*")
       .eq("email", userEmail)
       .single();
 
-    // 🔥 Auto create user if not exists
+    // ✅ Auto create user
     if (!user) {
-      const { data: newUser } = await supabase
+      const { data } = await supabase
         .from("users")
         .insert([{ email: userEmail, credits: 10, plan: "free" }])
         .select()
         .single();
 
-      user = newUser;
+      user = data;
     }
 
-    // ✅ Check credits
+    // ✅ Credits check
     if (user.credits <= 0) {
       return res.status(403).json({ error: "No credits left" });
     }
 
-    // ✅ Call Groq AI
+    // ✅ AI Call (Groq)
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-                "Authorization": "Bearer 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"
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "mixtral-8x7b-32768", // 🔥 stable model
+        model: "mixtral-8x7b-32768",
         messages: [
           {
             role: "system",
-            content: "You are a professional e-commerce copywriter. Always return ONLY valid JSON."
+            content: "You are a professional e-commerce copywriter. Return ONLY valid JSON."
           },
           {
             role: "user",
-            content: `You MUST return ONLY valid JSON. No text outside JSON.
-
-Create high converting product listing:
+            content: `Create high converting product listing.
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-Output:
+Return ONLY JSON:
 {
   "title": "...",
   "description": "...",
@@ -85,21 +80,18 @@ Output:
 
     const aiData = await aiRes.json();
 
-// 🔥 FULL DEBUG
-console.log("STATUS:", aiRes.status);
-console.log("AI RESPONSE:", JSON.stringify(aiData, null, 2));
+    console.log("STATUS:", aiRes.status);
+    console.log("AI RESPONSE:", JSON.stringify(aiData, null, 2));
 
-// ❌ when api error 
-if (!aiRes.ok) {
-  return res.status(500).json({
-    error: "Groq API Error",
-    details: aiData
-  });
-}
+    // ❌ API error
+    if (!aiRes.ok) {
+      return res.status(500).json({
+        error: "Groq API Error",
+        details: aiData
+      });
+    }
 
-    console.log("AI FULL RESPONSE:", aiData);
-
-    // ✅ SAFE CHECK
+    // ❌ No choices
     if (!aiData || !aiData.choices || aiData.choices.length === 0) {
       return res.status(500).json({
         error: "AI returned no choices",
@@ -109,6 +101,7 @@ if (!aiRes.ok) {
 
     const content = aiData.choices[0]?.message?.content;
 
+    // ❌ Empty content
     if (!content) {
       return res.status(500).json({
         error: "AI empty response",
@@ -116,7 +109,7 @@ if (!aiRes.ok) {
       });
     }
 
-    // ✅ CLEAN + PARSE JSON
+    // ✅ Clean + Parse JSON
     let parsed;
     try {
       const clean = content.replace(/```json|```/g, "").trim();
@@ -135,7 +128,7 @@ if (!aiRes.ok) {
       .update({ credits: user.credits - 1 })
       .eq("email", userEmail);
 
-    // ✅ Send result
+    // ✅ Final response
     return res.status(200).json(parsed);
 
   } catch (err) {
@@ -143,4 +136,4 @@ if (!aiRes.ok) {
       error: err.message
     });
   }
-}
+        }

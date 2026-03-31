@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 
-// ✅ Supabase init
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -12,22 +11,18 @@ export default async function handler(req, res) {
 
     const userEmail = email || "rites0h12h@gmail.com";
 
-    // ✅ Validate input
     if (!product) {
       return res.status(400).json({ error: "Product required" });
     }
 
-    // ✅ Check ENV (debug)
     console.log("KEY LENGTH:", process.env.GROQ_API_KEY?.length);
 
-    // ✅ Get user
     let { data: user } = await supabase
       .from("users")
       .select("*")
       .eq("email", userEmail)
       .single();
 
-    // ✅ Auto create user
     if (!user) {
       const { data } = await supabase
         .from("users")
@@ -38,12 +33,10 @@ export default async function handler(req, res) {
       user = data;
     }
 
-    // ✅ Credits check
     if (user.credits <= 0) {
       return res.status(403).json({ error: "No credits left" });
     }
 
-    // ✅ AI Call (Groq)
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -55,22 +48,22 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "You are a professional e-commerce copywriter. Return ONLY valid JSON."
+            content: "You are a professional e-commerce copywriter. Return ONLY JSON."
           },
           {
             role: "user",
-            content: `Create high converting product listing.
+            content: `Create product listing:
 
 Product: ${product}
 Platform: ${platform}
 Tone: ${tone}
 Keywords: ${keywords}
 
-Return ONLY JSON:
+Return JSON:
 {
-  "title": "...",
-  "description": "...",
-  "bullets": "..."
+"title":"...",
+"description":"...",
+"bullets":"..."
 }`
           }
         ],
@@ -83,7 +76,6 @@ Return ONLY JSON:
     console.log("STATUS:", aiRes.status);
     console.log("AI RESPONSE:", JSON.stringify(aiData, null, 2));
 
-    // ❌ API error
     if (!aiRes.ok) {
       return res.status(500).json({
         error: "Groq API Error",
@@ -91,7 +83,6 @@ Return ONLY JSON:
       });
     }
 
-    // ❌ No choices
     if (!aiData || !aiData.choices || aiData.choices.length === 0) {
       return res.status(500).json({
         error: "AI returned no choices",
@@ -99,9 +90,8 @@ Return ONLY JSON:
       });
     }
 
-    const content = aiData.choices[0]?.message?.content;
+    const content = aiData.choices[0].message.content;
 
-    // ❌ Empty content
     if (!content) {
       return res.status(500).json({
         error: "AI empty response",
@@ -109,7 +99,6 @@ Return ONLY JSON:
       });
     }
 
-    // ✅ Clean + Parse JSON
     let parsed;
     try {
       const clean = content.replace(/```json|```/g, "").trim();
@@ -122,13 +111,11 @@ Return ONLY JSON:
       });
     }
 
-    // ✅ Deduct credit
     await supabase
       .from("users")
       .update({ credits: user.credits - 1 })
       .eq("email", userEmail);
 
-    // ✅ Final response
     return res.status(200).json(parsed);
 
   } catch (err) {
@@ -136,4 +123,4 @@ Return ONLY JSON:
       error: err.message
     });
   }
-        }
+}

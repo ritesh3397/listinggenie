@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization": "Bearer xai-BpWUREa5j5x8MEPVLbEF02Z73Wy3GUmJgJhXa0svzHLawD9Gu2YYwadoU3Lm0eRWe27X8KteKnxoqVeI"
+                "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({

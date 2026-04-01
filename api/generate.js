@@ -11,12 +11,14 @@ export default async function handler(req, res) {
 
     const userEmail = email || "rites0h12h@gmail.com";
 
+    // ✅ Validation
     if (!product) {
       return res.status(400).json({ error: "Product required" });
     }
 
     console.log("KEY LENGTH:", process.env.GROQ_API_KEY?.length);
 
+    // ✅ Get or create user
     let { data: user } = await supabase
       .from("users")
       .select("*")
@@ -33,10 +35,12 @@ export default async function handler(req, res) {
       user = data;
     }
 
+    // ✅ Credits check
     if (user.credits <= 0) {
       return res.status(403).json({ error: "No credits left" });
     }
 
+    // ✅ AI CALL (FIXED + SAFE)
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -44,15 +48,15 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-  model: "llama-3.3-70b-versatile",
-  messages: [
-    {
-      role: "system",
-      content: "You are a professional e-commerce copywriter. Return ONLY JSON."
-    },
-    {
-      role: "user",
-      content: `Create product listing:
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional e-commerce copywriter. Return ONLY JSON."
+          },
+          {
+            role: "user",
+            content: `Create product listing:
 
 Product: ${product}
 Platform: ${platform}
@@ -65,15 +69,18 @@ Return JSON:
 "description":"...",
 "bullets":"..."
 }`
-    }
-  ],
-  temperature: 0.7
-})
+          }
+        ],
+        temperature: 0.7
+      })
+    });
+
     const aiData = await aiRes.json();
 
     console.log("STATUS:", aiRes.status);
     console.log("AI RESPONSE:", JSON.stringify(aiData, null, 2));
 
+    // ❌ API error
     if (!aiRes.ok) {
       return res.status(500).json({
         error: "Groq API Error",
@@ -81,6 +88,7 @@ Return JSON:
       });
     }
 
+    // ❌ No choices
     if (!aiData || !aiData.choices || aiData.choices.length === 0) {
       return res.status(500).json({
         error: "AI returned no choices",
@@ -90,6 +98,7 @@ Return JSON:
 
     const content = aiData.choices[0].message.content;
 
+    // ❌ Empty response
     if (!content) {
       return res.status(500).json({
         error: "AI empty response",
@@ -97,6 +106,7 @@ Return JSON:
       });
     }
 
+    // ✅ Clean + Parse JSON
     let parsed;
     try {
       const clean = content.replace(/```json|```/g, "").trim();
@@ -109,11 +119,13 @@ Return JSON:
       });
     }
 
+    // ✅ Deduct credit
     await supabase
       .from("users")
       .update({ credits: user.credits - 1 })
       .eq("email", userEmail);
 
+    // ✅ Final response
     return res.status(200).json(parsed);
 
   } catch (err) {

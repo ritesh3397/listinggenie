@@ -44,15 +44,15 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile"
-        messages: [
-          {
-            role: "system",
-            content: "You are a professional e-commerce copywriter. Return ONLY JSON."
-          },
-          {
-            role: "user",
-            content: `Create product listing:
+  model: "llama-3.3-70b-versatile",
+  messages: [
+    {
+      role: "system",
+      content: "You are a professional e-commerce copywriter. Return ONLY JSON."
+    },
+    {
+      role: "user",
+      content: `Create product listing:
 
 Product: ${product}
 Platform: ${platform}
@@ -65,12 +65,10 @@ Return JSON:
 "description":"...",
 "bullets":"..."
 }`
-          }
-        ],
-        temperature: 0.7
-      })
-    });
-
+    }
+  ],
+  temperature: 0.7
+})
     const aiData = await aiRes.json();
 
     console.log("STATUS:", aiRes.status);

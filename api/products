@@ -1,0 +1,18 @@
+{
+  "products":[
+    {
+      "name":"LED Face Mask",
+      "demand":"High 🔥",
+      "profit":"40-60%",
+      "audience":"Women 18-35",
+      "viral":"Trending on TikTok"
+    },
+    {
+      "name":"Smart Water Bottle",
+      "demand":"Medium",
+      "profit":"30%",
+      "audience":"Fitness lovers",
+      "viral":"Health trend"
+    }
+  ]
+}

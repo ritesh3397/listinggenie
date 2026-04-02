@@ -3,50 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Winning Products</title>
+<title>Winning Finder</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
 body{
-  font-family:'Inter',sans-serif;
-  background:linear-gradient(135deg,#0f172a,#0d9488);
   margin:0;
-  color:#0f172a;
-}
-
-.container{
-  max-width:700px;
-  margin:40px auto;
-  background:white;
-  padding:25px;
-  border-radius:20px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.2);
-  position:relative;
-}
-
-.back-btn{
-  position:absolute;
-  top:15px;
-  left:15px;
-  background:#0d9488;
+  font-family:'DM Sans',sans-serif;
+  background:linear-gradient(135deg,#020c10,#062428);
   color:white;
-  border:none;
-  padding:6px 10px;
-  border-radius:8px;
-  font-size:12px;
-  cursor:pointer;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+.card{
+  width:90%;
+  max-width:420px;
+  background:rgba(255,255,255,0.05);
+  border-radius:20px;
+  padding:30px;
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.1);
 }
 
 h1{
-  text-align:center;
-  margin-bottom:5px;
+  font-family:'Syne',sans-serif;
+  font-size:28px;
+  margin-bottom:10px;
 }
 
 .sub{
-  text-align:center;
-  color:#64748b;
+  color:rgba(255,255,255,0.5);
+  font-size:13px;
   margin-bottom:20px;
 }
 
@@ -54,96 +45,77 @@ select{
   width:100%;
   padding:12px;
   margin-top:10px;
-  border-radius:12px;
-  border:1px solid #ddd;
+  border-radius:10px;
+  border:none;
+  background:rgba(255,255,255,0.08);
+  color:white;
 }
 
-button.main{
+button{
   width:100%;
   padding:14px;
   margin-top:15px;
   border:none;
   border-radius:12px;
-  background:#0d9488;
-  color:white;
-  font-size:16px;
-  font-weight:600;
+  background:linear-gradient(135deg,#1de9b6,#009688);
+  font-weight:700;
   cursor:pointer;
 }
 
-.result{
-  margin-top:20px;
-  padding:15px;
-  border-radius:12px;
-  background:#f1f5f9;
-}
-
-.badge{
+.tag{
   display:inline-block;
-  background:#0d9488;
-  color:white;
   padding:5px 10px;
-  border-radius:50px;
-  font-size:12px;
-  margin-bottom:10px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.08);
+  margin:5px;
+  font-size:11px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="card">
 
-<button class="back-btn" onclick="goBack()">⬅</button>
+<h1>Find Your Next<br>Winning Product</h1>
+<p class="sub">AI-powered product research</p>
 
-<div class="badge">🔥 AI Winning Finder</div>
-
-<h1>Winning Products</h1>
-<p class="sub">Discover top products based on filters</p>
-
-<!-- 🔥 FILTERS -->
 <select id="category">
-  <option value="all">All Categories</option>
-  <option value="gadgets">Gadgets</option>
-  <option value="fitness">Fitness</option>
-  <option value="beauty">Beauty</option>
-  <option value="home">Home</option>
+<option>Beauty</option>
+<option>Fashion</option>
+<option>Electronics</option>
+<option>Home & Garden</option>
+<option>Health</option>
 </select>
 
 <select id="country">
-  <option value="global">Global</option>
-  <option value="india">India</option>
-  <option value="usa">USA</option>
-  <option value="uk">UK</option>
+<option>USA</option>
+<option>UK</option>
+<option>India</option>
+<option>Canada</option>
+<option>Australia</option>
 </select>
 
-<button class="main" onclick="findProducts()">🚀 Find Winning Products</button>
+<button onclick="findProducts()">🚀 Find Winning Products</button>
 
-<div id="loader" style="display:none;margin-top:15px;">⏳ Finding winners...</div>
+<div id="loader" style="display:none;margin-top:10px;">Analyzing...</div>
 
-<div id="productsBox"></div>
+<div id="result"></div>
 
 </div>
 
 <script>
-
-function goBack(){
-  window.location.href = "index.html";
-}
 
 async function findProducts(){
   const category = document.getElementById("category").value;
   const country = document.getElementById("country").value;
 
   document.getElementById("loader").style.display="block";
-  document.getElementById("productsBox").innerHTML = "";
 
   try{
     const res = await fetch("/api/products",{
       method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
+      headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ category, country })
     });
 
@@ -158,43 +130,21 @@ async function findProducts(){
 
     let html = "";
 
-    data.products.forEach((p,i)=>{
+    data.products.forEach(p=>{
       html += `
-      <div class="result">
-        <b>${i+1}. ${p.name}</b>
-
-        <p>📈 Demand: ${p.demand}</p>
-        <p>💰 Profit: ${p.profit}</p>
-        <p>🎯 Audience: ${p.audience}</p>
-        <p>🚀 ${p.viral_reason}</p>
-
-        <canvas id="chart${i}" height="100"></canvas>
-
-        <button onclick="useProduct('${p.name}')">✨ Generate Listing</button>
-      </div>
+        <div style="margin-top:15px;padding:10px;background:#0a2e33;border-radius:10px;">
+          <b>${p.name}</b>
+          <p>📈 ${p.demand}</p>
+          <p>💰 ${p.profit}</p>
+          <button onclick="useProduct('${p.name}')">Use</button>
+        </div>
       `;
     });
 
-    document.getElementById("productsBox").innerHTML = html;
-
-    data.products.forEach((p,i)=>{
-      new Chart(document.getElementById(`chart${i}`),{
-        type:'bar',
-        data:{
-          labels:['Demand','Profit'],
-          datasets:[{
-            data:[
-              p.demand==="High"?90:p.demand==="Medium"?60:30,
-              70
-            ]
-          }]
-        }
-      });
-    });
+    document.getElementById("result").innerHTML = html;
 
   }catch(err){
-    document.getElementById("loader").style.display="none";
-    alert("❌ Error: " + err.message);
+    alert(err.message);
   }
 }
 

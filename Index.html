@@ -216,7 +216,25 @@ async function handleGenerate(){
 function copy(id){
   const text = document.getElementById(id).innerText;
   navigator.clipboard.writeText(text);
-  alert("Copied!");
+
+  const toast = document.createElement("div");
+  toast.innerText = "Copied!";
+  toast.style.position = "fixed";
+  toast.style.bottom = "20px";
+  toast.style.left = "50%";
+  toast.style.transform = "translateX(-50%)";
+  toast.style.background = "#0d9488";
+  toast.style.color = "white";
+  toast.style.padding = "10px 16px";
+  toast.style.borderRadius = "8px";
+  toast.style.fontSize = "14px";
+  toast.style.zIndex = "9999";
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 1500);
 }
 
 // ✅ Products Page Redirect

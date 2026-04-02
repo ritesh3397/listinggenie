@@ -3,154 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Winning Finder</title>
-
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<title>Winning Products</title>
 
 <style>
 body{
-  margin:0;
-  font-family:'DM Sans',sans-serif;
-  background:linear-gradient(135deg,#020c10,#062428);
+  font-family: Arial, sans-serif;
+  background:#0f172a;
   color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
+  margin:0;
 }
 
-.card{
-  width:90%;
-  max-width:420px;
-  background:rgba(255,255,255,0.05);
-  border-radius:20px;
-  padding:30px;
-  backdrop-filter:blur(20px);
-  border:1px solid rgba(255,255,255,0.1);
+.container{
+  max-width:700px;
+  margin:30px auto;
+  padding:20px;
 }
 
 h1{
-  font-family:'Syne',sans-serif;
-  font-size:28px;
-  margin-bottom:10px;
+  text-align:center;
 }
 
-.sub{
-  color:rgba(255,255,255,0.5);
-  font-size:13px;
-  margin-bottom:20px;
-}
-
-select{
+select, button{
   width:100%;
   padding:12px;
   margin-top:10px;
   border-radius:10px;
   border:none;
-  background:rgba(255,255,255,0.08);
-  color:white;
 }
 
 button{
-  width:100%;
-  padding:14px;
-  margin-top:15px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(135deg,#1de9b6,#009688);
-  font-weight:700;
+  background:#0d9488;
+  color:white;
+  font-weight:bold;
   cursor:pointer;
 }
 
-.tag{
-  display:inline-block;
-  padding:5px 10px;
+.card{
+  background:#1e293b;
+  padding:15px;
+  margin-top:15px;
+  border-radius:12px;
+}
+
+.badge{
+  background:#0d9488;
+  padding:4px 10px;
   border-radius:20px;
-  background:rgba(255,255,255,0.08);
-  margin:5px;
-  font-size:11px;
+  font-size:12px;
+  display:inline-block;
+  margin-bottom:10px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<div class="card">
+<div class="container">
 
-<h1>Find Your Next<br>Winning Product</h1>
-<p class="sub">AI-powered product research</p>
+<!-- 🔙 BACK BUTTON -->
+<button onclick="goBack()">⬅ Back</button>
 
+<h1>🔥 Winning Products</h1>
+
+<!-- FILTERS -->
 <select id="category">
+<option>All Categories</option>
 <option>Beauty</option>
-<option>Fashion</option>
 <option>Electronics</option>
-<option>Home & Garden</option>
-<option>Health</option>
+<option>Fitness</option>
+<option>Home</option>
 </select>
 
 <select id="country">
+<option>Global</option>
+<option>India</option>
 <option>USA</option>
 <option>UK</option>
-<option>India</option>
-<option>Canada</option>
-<option>Australia</option>
 </select>
 
-<button onclick="findProducts()">🚀 Find Winning Products</button>
+<button onclick="findProducts()">🚀 Find Products</button>
 
-<div id="loader" style="display:none;margin-top:10px;">Analyzing...</div>
-
-<div id="result"></div>
+<div id="results"></div>
 
 </div>
 
 <script>
 
+function goBack(){
+  window.location.href = "index.html";
+}
+
 async function findProducts(){
+
   const category = document.getElementById("category").value;
   const country = document.getElementById("country").value;
 
-  document.getElementById("loader").style.display="block";
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "⏳ Finding winning products...";
 
   try{
+
     const res = await fetch("/api/products",{
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ category, country })
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        category,
+        country
+      })
     });
 
     const data = await res.json();
 
-    document.getElementById("loader").style.display="none";
-
     if(data.error){
-      alert(data.error);
+      resultsDiv.innerHTML = "❌ " + data.error;
       return;
     }
 
-    let html = "";
-
-    data.products.forEach(p=>{
-      html += `
-        <div style="margin-top:15px;padding:10px;background:#0a2e33;border-radius:10px;">
-          <b>${p.name}</b>
-          <p>📈 ${p.demand}</p>
-          <p>💰 ${p.profit}</p>
-          <button onclick="useProduct('${p.name}')">Use</button>
-        </div>
-      `;
-    });
-
-    document.getElementById("result").innerHTML = html;
+    displayProducts(data.products);
 
   }catch(err){
-    alert(err.message);
+    resultsDiv.innerHTML = "❌ Error: " + err.message;
   }
 }
 
-function useProduct(name){
-  localStorage.setItem("selectedProduct", name);
-  window.location.href = "index.html";
+function displayProducts(products){
+
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "";
+
+  products.forEach(p => {
+
+    resultsDiv.innerHTML += `
+      <div class="card">
+        <div class="badge">${p.name}</div>
+
+        <p><b>Demand:</b> ${p.demand}</p>
+        <p><b>Profit:</b> ${p.profit}</p>
+        <p><b>Audience:</b> ${p.audience}</p>
+        <p><b>Why Viral:</b> ${p.viral}</p>
+      </div>
+    `;
+
+  });
+
 }
 
 </script>

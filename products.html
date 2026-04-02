@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Winning Products</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(135deg,#0f172a,#0d9488);
+  margin:0;
+  color:#0f172a;
+}
+
+.container{
+  max-width:700px;
+  margin:40px auto;
+  background:white;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.2);
+}
+
+h1{
+  text-align:center;
+  margin-bottom:5px;
+}
+
+.sub{
+  text-align:center;
+  color:#64748b;
+  margin-bottom:20px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  margin-top:15px;
+  border:none;
+  border-radius:12px;
+  background:#0d9488;
+  color:white;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#0f766e;
+}
+
+.result{
+  margin-top:20px;
+  padding:15px;
+  border-radius:12px;
+  background:#f1f5f9;
+}
+
+.badge{
+  display:inline-block;
+  background:#0d9488;
+  color:white;
+  padding:5px 10px;
+  border-radius:50px;
+  font-size:12px;
+  margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="badge">🔥 AI Winning Finder</div>
+
+<h1>Winning Products</h1>
+<p class="sub">Discover top 5 high-converting products instantly</p>
+
+<button onclick="goBack()">⬅ Back</button>
+
+<button onclick="findProducts()">🚀 Find Winning Products</button>
+
+<div id="loader" style="display:none;margin-top:15px;">⏳ Finding winners...</div>
+
+<div id="productsBox"></div>
+
+</div>
+
+<script>
+
+function goBack(){
+  window.location.href = "index.html";
+}
+
+async function findProducts(){
+  document.getElementById("loader").style.display="block";
+  document.getElementById("productsBox").innerHTML = "";
+
+  try{
+    const res = await fetch("/api/products",{
+      method:"POST"
+    });
+
+    const text = await res.text();
+
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch{
+      console.log("RAW:", text);
+      throw new Error(text);
+    }
+
+    document.getElementById("loader").style.display="none";
+
+    if(data.error){
+      alert(data.error);
+      return;
+    }
+
+    let html = "";
+
+    data.products.forEach((p,i)=>{
+      html += `
+      <div class="result">
+        <b>${i+1}. ${p.name}</b>
+
+        <p>📈 Demand: ${p.demand}</p>
+        <p>💰 Profit: ${p.profit}</p>
+        <p>🎯 Audience: ${p.audience}</p>
+        <p>🚀 ${p.viral_reason}</p>
+
+        <canvas id="chart${i}" height="100"></canvas>
+
+        <button onclick="useProduct('${p.name}')">✨ Generate Listing</button>
+      </div>
+      `;
+    });
+
+    document.getElementById("productsBox").innerHTML = html;
+
+    // charts
+    data.products.forEach((p,i)=>{
+      const ctx = document.getElementById(`chart${i}`);
+
+      new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels:['Demand','Profit'],
+          datasets:[{
+            label:'Score',
+            data:[
+              p.demand==="High"?90:p.demand==="Medium"?60:30,
+              70
+            ]
+          }]
+        }
+      });
+    });
+
+  }catch(err){
+    document.getElementById("loader").style.display="none";
+    alert("❌ Error: " + err.message);
+  }
+}
+
+// 🔥 send product to listing page
+function useProduct(name){
+  localStorage.setItem("selectedProduct", name);
+  window.location.href = "index.html";
+}
+
+</script>
+
+</body>
+</html>

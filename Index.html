@@ -120,8 +120,10 @@ button:hover{
 
 <input id="keywords" placeholder="Keywords (optional)"/>
 
-<button onclick="generate()">✨ Generate Listing</button>
+<!-- ✅ Generate -->
+<button onclick="handleGenerate()">✨ Generate Listing</button>
 
+<!-- ✅ Working Products Button -->
 <button onclick="goProducts()">🔥 Find Winning Products</button>
 
 <div class="loader" id="loader">⏳ Generating magic...</div>
@@ -146,7 +148,7 @@ button:hover{
 <p id="bullets"></p>
 </div>
 
-<button onclick="generate()">🔁 Regenerate</button>
+<button onclick="handleGenerate()">🔁 Regenerate</button>
 
 </div>
 
@@ -154,16 +156,7 @@ button:hover{
 
 <script>
 
-// 🔥 AUTO-FILL FROM PRODUCTS PAGE
-window.onload = function(){
-  const saved = localStorage.getItem("selectedProduct");
-  if(saved){
-    document.getElementById("productName").value = saved;
-    localStorage.removeItem("selectedProduct");
-  }
-};
-
-async function generate(){
+async function handleGenerate(){
   const product = document.getElementById("productName").value.trim();
   const platform = document.getElementById("platform").value;
   const tone = document.getElementById("tone").value;
@@ -187,8 +180,7 @@ async function generate(){
         product,
         platform,
         tone,
-        keywords,
-        email: "rites0h12h@gmail.com"
+        keywords
       })
     });
 
@@ -227,6 +219,7 @@ function copy(id){
   alert("Copied!");
 }
 
+// ✅ Products Page Redirect
 function goProducts(){
   window.location.href = "products.html";
 }

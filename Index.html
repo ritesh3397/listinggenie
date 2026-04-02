@@ -120,10 +120,8 @@ button:hover{
 
 <input id="keywords" placeholder="Keywords (optional)"/>
 
-<!-- 🔥 EXISTING BUTTON -->
 <button onclick="generate()">✨ Generate Listing</button>
 
-<!-- 🔥 NEW BUTTON ADDED -->
 <button onclick="goProducts()">🔥 Find Winning Products</button>
 
 <div class="loader" id="loader">⏳ Generating magic...</div>
@@ -155,6 +153,15 @@ button:hover{
 </div>
 
 <script>
+
+// 🔥 AUTO-FILL FROM PRODUCTS PAGE
+window.onload = function(){
+  const saved = localStorage.getItem("selectedProduct");
+  if(saved){
+    document.getElementById("productName").value = saved;
+    localStorage.removeItem("selectedProduct");
+  }
+};
 
 async function generate(){
   const product = document.getElementById("productName").value.trim();
@@ -220,7 +227,6 @@ function copy(id){
   alert("Copied!");
 }
 
-// 🔥 NEW FUNCTION
 function goProducts(){
   window.location.href = "products.html";
 }

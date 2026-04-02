@@ -23,6 +23,20 @@ body{
   padding:25px;
   border-radius:20px;
   box-shadow:0 10px 40px rgba(0,0,0,0.2);
+  position:relative;
+}
+
+.back-btn{
+  position:absolute;
+  top:15px;
+  left:15px;
+  background:#0d9488;
+  color:white;
+  border:none;
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:12px;
+  cursor:pointer;
 }
 
 h1{
@@ -36,7 +50,15 @@ h1{
   margin-bottom:20px;
 }
 
-button{
+select{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
+
+button.main{
   width:100%;
   padding:14px;
   margin-top:15px;
@@ -47,10 +69,6 @@ button{
   font-size:16px;
   font-weight:600;
   cursor:pointer;
-}
-
-button:hover{
-  background:#0f766e;
 }
 
 .result{
@@ -76,14 +94,30 @@ button:hover{
 
 <div class="container">
 
+<button class="back-btn" onclick="goBack()">⬅</button>
+
 <div class="badge">🔥 AI Winning Finder</div>
 
 <h1>Winning Products</h1>
-<p class="sub">Discover top 5 high-converting products instantly</p>
+<p class="sub">Discover top products based on filters</p>
 
-<button onclick="goBack()">⬅ Back</button>
+<!-- 🔥 FILTERS -->
+<select id="category">
+  <option value="all">All Categories</option>
+  <option value="gadgets">Gadgets</option>
+  <option value="fitness">Fitness</option>
+  <option value="beauty">Beauty</option>
+  <option value="home">Home</option>
+</select>
 
-<button onclick="findProducts()">🚀 Find Winning Products</button>
+<select id="country">
+  <option value="global">Global</option>
+  <option value="india">India</option>
+  <option value="usa">USA</option>
+  <option value="uk">UK</option>
+</select>
+
+<button class="main" onclick="findProducts()">🚀 Find Winning Products</button>
 
 <div id="loader" style="display:none;margin-top:15px;">⏳ Finding winners...</div>
 
@@ -98,23 +132,22 @@ function goBack(){
 }
 
 async function findProducts(){
+  const category = document.getElementById("category").value;
+  const country = document.getElementById("country").value;
+
   document.getElementById("loader").style.display="block";
   document.getElementById("productsBox").innerHTML = "";
 
   try{
     const res = await fetch("/api/products",{
-      method:"POST"
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({ category, country })
     });
 
-    const text = await res.text();
-
-    let data;
-    try{
-      data = JSON.parse(text);
-    }catch{
-      console.log("RAW:", text);
-      throw new Error(text);
-    }
+    const data = await res.json();
 
     document.getElementById("loader").style.display="none";
 
@@ -144,16 +177,12 @@ async function findProducts(){
 
     document.getElementById("productsBox").innerHTML = html;
 
-    // charts
     data.products.forEach((p,i)=>{
-      const ctx = document.getElementById(`chart${i}`);
-
-      new Chart(ctx,{
+      new Chart(document.getElementById(`chart${i}`),{
         type:'bar',
         data:{
           labels:['Demand','Profit'],
           datasets:[{
-            label:'Score',
             data:[
               p.demand==="High"?90:p.demand==="Medium"?60:30,
               70
@@ -169,7 +198,6 @@ async function findProducts(){
   }
 }
 
-// 🔥 send product to listing page
 function useProduct(name){
   localStorage.setItem("selectedProduct", name);
   window.location.href = "index.html";

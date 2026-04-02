@@ -120,7 +120,11 @@ button:hover{
 
 <input id="keywords" placeholder="Keywords (optional)"/>
 
+<!-- 🔥 EXISTING BUTTON -->
 <button onclick="generate()">✨ Generate Listing</button>
+
+<!-- 🔥 NEW BUTTON ADDED -->
+<button onclick="goProducts()">🔥 Find Winning Products</button>
 
 <div class="loader" id="loader">⏳ Generating magic...</div>
 
@@ -173,15 +177,14 @@ async function generate(){
         "Content-Type":"application/json"
       },
       body: JSON.stringify({
-  product,
-  platform,
-  tone,
-  keywords,
-  email: "rites0h12h@gmail.com"
-})
+        product,
+        platform,
+        tone,
+        keywords,
+        email: "rites0h12h@gmail.com"
+      })
     });
 
-    // 🔥 SAFE RESPONSE HANDLING
     const text = await res.text();
 
     let data;
@@ -215,6 +218,11 @@ function copy(id){
   const text = document.getElementById(id).innerText;
   navigator.clipboard.writeText(text);
   alert("Copied!");
+}
+
+// 🔥 NEW FUNCTION
+function goProducts(){
+  window.location.href = "products.html";
 }
 
 </script>

@@ -6,10 +6,10 @@ export default async function handler(req, res) {
 
   const { category, country } = req.body;
 
-  // 👉 REAL AI STYLE (abhi mock + dynamic)
-  let products = [
+  // 🔥 BIG LIST (random choose hoga)
+  const allProducts = [
     {
-      name: "LED Face Mask",
+      name: "LED Frace Mask",
       demand: "High 🔥",
       profit: "₹1500+",
       audience: "Women 18-35",
@@ -28,15 +28,34 @@ export default async function handler(req, res) {
       profit: "₹1200+",
       audience: "Office workers",
       viral: "Back pain solution"
+    },
+    {
+      name: "Mini Projector",
+      demand: "High 🔥",
+      profit: "₹2000+",
+      audience: "Movie lovers",
+      viral: "Home theater trend"
+    },
+    {
+      name: "Ice Face Roller",
+      demand: "Medium 📈",
+      profit: "₹600+",
+      audience: "Skincare audience",
+      viral: "Glow trend"
+    },
+    {
+      name: "Smart Watch Ultra",
+      demand: "High 🔥",
+      profit: "₹1800+",
+      audience: "Tech users",
+      viral: "Fitness + tracking"
     }
   ];
 
-  // 👉 Filter logic
-  if (category && category !== "All Categories") {
-    products = products.filter(p =>
-      p.name.toLowerCase().includes(category.toLowerCase())
-    );
-  }
+  // 🔀 RANDOM 3 products
+  const shuffled = allProducts.sort(() => 0.5 - Math.random());
+  const products = shuffled.slice(0, 3);
 
   res.status(200).json({ products });
+
 }

@@ -113,12 +113,23 @@ async function handleGenerate(){
       body: JSON.stringify({ product })
     });
 
-    const data = await res.json();
+    const text = await res.text();
 
-    document.getElementById("titleText").innerText = data.title || "No title";
-    document.getElementById("descText").innerText = data.description || "No description";
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch{
+      alert("❌ Not JSON: " + text);
+      return;
+    }
 
-    const bullets = Array.isArray(data.bullets) ? data.bullets : ["No bullets"];
+    // ✅ FIX (important)
+    const result = data.listing || data;
+
+    document.getElementById("titleText").innerText = result.title || "No title";
+    document.getElementById("descText").innerText = result.description || "No description";
+
+    const bullets = Array.isArray(result.bullets) ? result.bullets : ["No bullets"];
 
     document.getElementById("bulletsList").innerHTML =
       bullets.map(b=>`<li>${b}</li>`).join("");
@@ -173,7 +184,7 @@ async function findWinning(){
 }
 
 
-// 🔥 COPY FIX
+// 🔥 COPY FIX (no popup)
 function copyText(id,btn){
 
   const text = document.getElementById(id).innerText;

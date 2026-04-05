@@ -118,6 +118,9 @@ async function handleGenerate(){
     let data;
     try{
       data = JSON.parse(text);
+      
+      alert(JSON.stringify(data));
+      
     }catch{
       alert("❌ Not JSON: " + text);
       return;

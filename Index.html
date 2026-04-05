@@ -14,14 +14,16 @@ body{
 }
 
 .container{
-  max-width:600px;
+  max-width:700px;
   margin:30px auto;
   padding:20px;
 }
 
-h1{text-align:center}
+h1{
+  text-align:center;
+}
 
-input,select,button{
+input, button{
   width:100%;
   padding:12px;
   margin-top:10px;
@@ -43,18 +45,11 @@ button{
   border-radius:12px;
 }
 
-.tabs{
-  display:flex;
-  gap:10px;
-}
-
-.tabs button{
-  flex:1;
-  background:#1e293b;
-}
-
-.active{
-  background:#0d9488 !important;
+.copy-btn{
+  float:right;
+  cursor:pointer;
+  font-size:12px;
+  color:#0d9488;
 }
 </style>
 </head>
@@ -63,128 +58,90 @@ button{
 
 <div class="container">
 
-<h1>⚡ ListingGennie</h1>
+<h1>🚀 ListingGennie</h1>
 
-<!-- Tabs -->
-<div class="tabs">
-  <button id="tab1" class="active" onclick="showTab('listing')">Listing</button>
-  <button id="tab2" onclick="showTab('products')">Winning Products</button>
+<!-- INPUT -->
+<input id="productName" placeholder="Enter product name">
+
+<button onclick="handleGenerate()">✨ Generate Listing</button>
+<button onclick="findWinning()">🔥 Winning Products</button>
+
+<!-- RESULT -->
+<div id="resultBox" style="display:none">
+
+<div class="card">
+<b>Title</b>
+<span class="copy-btn" onclick="copyText('titleText',this)">Copy</span>
+<p id="titleText"></p>
 </div>
 
-<!-- 🔹 LISTING -->
-<div id="listing">
+<div class="card">
+<b>Description</b>
+<span class="copy-btn" onclick="copyText('descText',this)">Copy</span>
+<p id="descText"></p>
+</div>
 
-<input id="productName" placeholder="Product name">
-
-<select id="platform">
-<option>Shopify</option>
-<option>Amazon</option>
-<option>Flipkart</option>
-</select>
-
-<select id="tone">
-<option>Professional</option>
-<option>Casual</option>
-<option>Luxury</option>
-</select>
-
-<button onclick="generate()">✨ Generate</button>
-
-<div id="listingResult"></div>
+<div class="card">
+<b>Bullets</b>
+<ul id="bulletsList"></ul>
+</div>
 
 </div>
 
-<!-- 🔹 PRODUCTS -->
-<div id="products" style="display:none">
-
-<select id="category">
-<option>All</option>
-<option>Beauty</option>
-<option>Electronics</option>
-<option>Fitness</option>
-</select>
-
-<select id="country">
-<option>Global</option>
-<option>India</option>
-<option>USA</option>
-</select>
-
-<button onclick="findProducts()">🔥 Find Products</button>
-
-<div id="productResult"></div>
-
-</div>
+<!-- WINNING -->
+<div id="winningBox"></div>
 
 </div>
 
 <script>
 
-function showTab(tab){
-  document.getElementById("listing").style.display = tab==="listing"?"block":"none";
-  document.getElementById("products").style.display = tab==="products"?"block":"none";
+// 🔥 GENERATE LISTING
+async function handleGenerate(){
 
-  document.getElementById("tab1").classList.remove("active");
-  document.getElementById("tab2").classList.remove("active");
-
-  document.getElementById(tab==="listing"?"tab1":"tab2").classList.add("active");
-}
-
-// 🔹 LISTING API
-async function generate(){
-  const product = document.getElementById("productName").value;
+  const product = document.getElementById("productName").value.trim();
 
   if(!product){
-    alert("Enter product");
+    alert("Enter product name");
     return;
   }
 
-  const box = document.getElementById("listingResult");
-  box.innerHTML = "⏳ Generating...";
-
   try{
+
     const res = await fetch("/api/generate",{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({product})
+      body: JSON.stringify({ product })
     });
 
-    const text = await res.text();
+    const data = await res.json();
 
-    let data;
-    try{
-      data = JSON.parse(text);
-    }catch{
-      box.innerHTML = "❌ Server Error (Not JSON)";
-      return;
-    }
+    document.getElementById("titleText").innerText = data.title || "No title";
+    document.getElementById("descText").innerText = data.description || "No description";
 
-    box.innerHTML = `
-      <div class="card">
-        <b>${data.title}</b>
-        <p>${data.description}</p>
-      </div>
-    `;
+    const bullets = Array.isArray(data.bullets) ? data.bullets : ["No bullets"];
+
+    document.getElementById("bulletsList").innerHTML =
+      bullets.map(b=>`<li>${b}</li>`).join("");
+
+    document.getElementById("resultBox").style.display="block";
 
   }catch(err){
-    box.innerHTML = "❌ " + err.message;
+    alert("❌ " + err.message);
   }
 }
 
-// 🔹 PRODUCTS API
-async function findProducts(){
 
-  const category = document.getElementById("category").value;
-  const country = document.getElementById("country").value;
+// 🔥 WINNING PRODUCTS
+async function findWinning(){
 
-  const box = document.getElementById("productResult");
-  box.innerHTML = "⏳ Finding...";
+  const box = document.getElementById("winningBox");
+  box.innerHTML = "⏳ Loading...";
 
   try{
+
     const res = await fetch("/api/products",{
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({category,country})
+      headers:{ "Content-Type":"application/json" }
     });
 
     const text = await res.text();
@@ -193,18 +150,19 @@ async function findProducts(){
     try{
       data = JSON.parse(text);
     }catch{
-      box.innerHTML = "❌ Server Error (Not JSON)";
+      box.innerHTML = "❌ Not JSON<br>"+text;
       return;
     }
 
     box.innerHTML = "";
 
-    data.products.forEach(p=>{
+    (data.products || []).forEach((p,i)=>{
       box.innerHTML += `
         <div class="card">
-          <b>${p.name}</b>
+          <b>#${i+1} ${p.name}</b>
           <p>Demand: ${p.demand}</p>
           <p>Profit: ${p.profit}</p>
+          <p>${p.viral}</p>
         </div>
       `;
     });
@@ -212,6 +170,17 @@ async function findProducts(){
   }catch(err){
     box.innerHTML = "❌ " + err.message;
   }
+}
+
+
+// 🔥 COPY FIX
+function copyText(id,btn){
+
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text);
+
+  btn.innerText = "Copied!";
+  setTimeout(()=>btn.innerText="Copy",1500);
 }
 
 </script>

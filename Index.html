@@ -119,7 +119,16 @@ async function handleGenerate(){
     try{
       data = JSON.parse(text);
       
-      alert(JSON.stringify(data));
+      document.getElementById("titleText").innerText = data.title || "No title";
+
+document.getElementById("descText").innerText = data.description || "No description";
+
+const bullets = Array.isArray(data.bullets) ? data.bullets : ["No bullets"];
+
+document.getElementById("bulletsList").innerHTML =
+  bullets.map(b => `<li>${b}</li>`).join("");
+
+document.getElementById("resultBox").style.display = "block";
       
     }catch{
       alert("❌ Not JSON: " + text);

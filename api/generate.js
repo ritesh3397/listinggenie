@@ -1,136 +1,60 @@
-import { createClient } from "@supabase/supabase-js";
+export default async function handler(req, res){
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+  if(req.method !== "POST"){
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-export default async function handler(req, res) {
-  try {
-    const { product, platform, tone, keywords, email } = req.body;
+  try{
 
-    const userEmail = email || "rites0h12h@gmail.com";
+    const { product } = req.body;
 
-    // ✅ Validation
-    if (!product) {
+    if(!product){
       return res.status(400).json({ error: "Product required" });
     }
 
-    console.log("KEY LENGTH:", process.env.GROQ_API_KEY?.length);
-
-    // ✅ Get or create user
-    let { data: user } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", userEmail)
-      .single();
-
-    if (!user) {
-      const { data } = await supabase
-        .from("users")
-        .insert([{ email: userEmail, credits: 10, plan: "free" }])
-        .select()
-        .single();
-
-      user = data;
-    }
-
-    // ✅ Credits check
-    if (user.credits <= 0) {
-      return res.status(403).json({ error: "No credits left" });
-    }
-
-    // ✅ AI CALL (FIXED + SAFE)
-    const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-        "Content-Type": "application/json"
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama3-70b-8192",
         messages: [
           {
-            role: "system",
-            content: "You are a professional e-commerce copywriter. Return ONLY JSON."
+            role:"system",
+            content:"Return ONLY JSON with title, description and bullets array."
           },
           {
-            role: "user",
-            content: `Create product listing:
+            role:"user",
+            content:`Generate product listing for: ${product}
 
-Product: ${product}
-Platform: ${platform}
-Tone: ${tone}
-Keywords: ${keywords}
-
-Return JSON:
+Return:
 {
-"title":"...",
-"description":"...",
-"bullets":"..."
+ "title": "...",
+ "description": "...",
+ "bullets": ["...", "...", "..."]
 }`
           }
-        ],
-        temperature: 0.7
+        ]
       })
     });
 
-    const aiData = await aiRes.json();
+    const data = await response.json();
 
-    console.log("STATUS:", aiRes.status);
-    console.log("AI RESPONSE:", JSON.stringify(aiData, null, 2));
+    const content = data?.choices?.[0]?.message?.content;
 
-    // ❌ API error
-    if (!aiRes.ok) {
-      return res.status(500).json({
-        error: "Groq API Error",
-        details: aiData
-      });
-    }
-
-    // ❌ No choices
-    if (!aiData || !aiData.choices || aiData.choices.length === 0) {
-      return res.status(500).json({
-        error: "AI returned no choices",
-        full: aiData
-      });
-    }
-
-    const content = aiData.choices[0].message.content;
-
-    // ❌ Empty response
-    if (!content) {
-      return res.status(500).json({
-        error: "AI empty response",
-        full: aiData
-      });
-    }
-
-    // ✅ Clean + Parse JSON
     let parsed;
-    try {
-      const clean = content.replace(/```json|```/g, "").trim();
-      const match = clean.match(/\{[\s\S]*\}/);
-      parsed = JSON.parse(match[0]);
-    } catch (e) {
-      return res.status(500).json({
-        error: "Invalid JSON from AI",
-        raw: content
-      });
+
+    try{
+      parsed = JSON.parse(content);
+    }catch{
+      return res.status(500).json({ error: "Invalid JSON from AI", raw: content });
     }
 
-    // ✅ Deduct credit
-    await supabase
-      .from("users")
-      .update({ credits: user.credits - 1 })
-      .eq("email", userEmail);
-
-    // ✅ Final response
     return res.status(200).json(parsed);
 
-  } catch (err) {
-    return res.status(500).json({
-      error: err.message
-    });
+  }catch(err){
+    return res.status(500).json({ error: err.message });
   }
 }

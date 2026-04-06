@@ -114,17 +114,20 @@ async function handleGenerate(){
 
     console.log("DATA:", data);
 
-    // ❌ REMOVE ALERT (IMPORTANT)
-    // alert(JSON.stringify(data));
-
     // ✅ UI UPDATE
     document.getElementById("titleText").innerText = data.title || "No title";
     document.getElementById("descText").innerText = data.description || "No description";
 
     const bullets = Array.isArray(data.bullets) ? data.bullets : [];
 
+    // 🔥 UPDATED BULLETS WITH COPY BUTTON
     document.getElementById("bulletsList").innerHTML =
-      bullets.map(b => `<li>${b}</li>`).join("");
+      bullets.map((b,i)=>`
+        <li>
+          ${b}
+          <span class="copy-btn" onclick="copyBullet(${i}, this)">Copy</span>
+        </li>
+      `).join("");
 
     document.getElementById("resultBox").style.display = "block";
 
@@ -167,10 +170,23 @@ async function findWinning(){
 }
 
 
-// 🔥 COPY
+// 🔥 COPY TITLE/DESC
 function copyText(id,btn){
 
   const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text);
+
+  btn.innerText = "Copied!";
+  setTimeout(()=>btn.innerText="Copy",1500);
+}
+
+
+// 🔥 COPY BULLETS (NEW)
+function copyBullet(index, btn){
+
+  const bullets = document.querySelectorAll("#bulletsList li");
+  const text = bullets[index].childNodes[0].textContent.trim();
+
   navigator.clipboard.writeText(text);
 
   btn.innerText = "Copied!";

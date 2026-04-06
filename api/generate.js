@@ -40,18 +40,21 @@ Return:
       })
     });
 
-    const data = await response.json();
-
     const content = data?.choices?.[0]?.message?.content;
 
-    let parsed;
+// 🔥 CLEAN JSON EXTRACT
+let jsonText = content.match(/\{[\s\S]*\}/);
 
-    try{
-      parsed = JSON.parse(content);
-    }catch{
-      return res.status(500).json({ error: "Invalid JSON from AI", raw: content });
-    }
+let parsed;
 
+try{
+  parsed = JSON.parse(jsonText[0]);
+}catch(err){
+  return res.status(500).json({
+    error: "Still invalid JSON",
+    raw: content
+  });
+}
     return res.status(200).json(parsed);
 
   }catch(err){

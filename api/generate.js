@@ -40,9 +40,11 @@ Bullets:
     });
 
     const data = await response.json();
-
+    
     const content = data?.choices?.[0]?.message?.content || "";
-
+    
+    console.log("AI RAW:", content);
+    
     // 🔥 MANUAL PARSE (NO JSON NEEDED)
 
     const titleMatch = content.match(/Title:\s*(.*)/i);

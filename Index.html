@@ -110,37 +110,28 @@ async function handleGenerate(){
       body: JSON.stringify({ product })
     });
 
-    const raw = await res.json();
+    // 👇 ये ADD कर
+    alert("Status: " + res.status);
 
-    let data;
+    const text = await res.text();
 
-    if(typeof raw === "string"){
-      data = JSON.parse(raw);
-    }
-    else if(raw.content){
-      data = JSON.parse(raw.content);
-    }
-    else{
-      data = raw;
-    }
+    // 👇 ये ADD कर
+    alert("Response: " + text);
 
-    console.log("FINAL DATA:", data);
+    const data = JSON.parse(text);
 
     document.getElementById("titleText").innerText = data.title || "No title";
     document.getElementById("descText").innerText = data.description || "No description";
 
-    const bullets = Array.isArray(data.bullets) ? data.bullets : ["No bullets"];
-
     document.getElementById("bulletsList").innerHTML =
-      bullets.map(b=>`<li>${b}</li>`).join("");
+      (data.bullets || []).map(b=>`<li>${b}</li>`).join("");
 
     document.getElementById("resultBox").style.display="block";
 
   }catch(err){
-    alert("❌ " + err.message);
+    alert("❌ ERROR: " + err.message);
   }
 }
-
 
 // 🔥 WINNING PRODUCTS
 async function findWinning(){

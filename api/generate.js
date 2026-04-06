@@ -1,38 +1,49 @@
-export default async function handler(req, res){
+export default async function handler(req, res) {
 
-  if(req.method !== "POST"){
+  // ✅ Only POST allowed
+  if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  try{
+  try {
 
     const { product } = req.body;
 
-    if(!product){
-      return res.status(400).json({ error: "Product required" });
+    if (!product) {
+      return res.status(400).json({ error: "No product provided" });
     }
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+    // 🔥 GROQ API CALL
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192", // 🔥 CHANGE MODEL
+        model: "llama3-70b-8192",
         messages: [
           {
             role: "user",
-            content: `Create product listing for ${product}.
+            content: `You are a professional e-commerce copywriter.
 
-Give output in this format:
+Create a HIGH-CONVERTING product listing for: ${product}
 
-Title: ...
-Description: ...
-Bullets:
-- ...
-- ...
-- ...`
+Rules:
+- Make it persuasive and emotional
+- Focus on benefits, not features
+- Use power words
+- Make it sound premium and viral
+- Title must be catchy and scroll-stopping
+- Keep description short but impactful
+- Each bullet must highlight a benefit
+
+Return ONLY JSON in this format:
+{
+  "title": "",
+  "description": "",
+  "bullets": ["", "", "", "", ""]
+}`
           }
         ]
       })
@@ -40,59 +51,46 @@ Bullets:
 
     const data = await response.json();
 
-    console.log("FULL API RESPONSE:", JSON.stringify(data));
-
+    // 🔥 RAW AI OUTPUT
     const content = data?.choices?.[0]?.message?.content || "";
 
     console.log("AI RAW:", content);
 
-    // 🔥 fallback अगर empty आया
-    if(!content){
-      return res.status(200).json({
-        title: product + " (Trending Product)",
-        description: "High quality product with great demand. Perfect for customers looking for value and performance.",
-        bullets: [
-          "High demand product",
-          "Great profit margins",
-          "Perfect for online selling"
-        ]
+    // 🔥 JSON EXTRACT FIX
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+      return res.status(500).json({
+        error: "No JSON found",
+        raw: content
       });
     }
 
-    // 🔥 PARSE
-    let title = "No title";
-    let description = "No description";
-    let bullets = [];
+    let parsed;
 
-    const lines = content.split("\n");
-
-    lines.forEach(line => {
-
-      if(line.toLowerCase().includes("title")){
-        title = line.split(":")[1]?.trim() || title;
-      }
-
-      else if(line.toLowerCase().includes("description")){
-        description = line.split(":")[1]?.trim() || description;
-      }
-
-      else if(line.startsWith("-")){
-        bullets.push(line.replace("-","").trim());
-      }
-
-    });
-
-    if(bullets.length === 0){
-      bullets = ["Good product", "High demand", "Best seller"];
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (err) {
+      return res.status(500).json({
+        error: "Invalid JSON",
+        raw: content
+      });
     }
 
+    // ✅ FINAL RESPONSE
     return res.status(200).json({
-      title,
-      description,
-      bullets
+      title: parsed.title || "No title",
+      description: parsed.description || "No description",
+      bullets: parsed.bullets || []
     });
 
-  }catch(err){
-    return res.status(500).json({ error: err.message });
+  } catch (err) {
+
+    console.error("SERVER ERROR:", err);
+
+    return res.status(500).json({
+      error: "Server error",
+      details: err.message
+    });
   }
 }

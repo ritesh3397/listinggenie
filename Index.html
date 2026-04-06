@@ -110,29 +110,29 @@ async function handleGenerate(){
       body: JSON.stringify({ product })
     });
 
-    // 👇 ये ADD कर
-    alert("Status: " + res.status);
+    const data = await res.json();
 
-    const text = await res.text();
+    console.log("DATA:", data);
 
-    // 👇 ये ADD कर
-    alert("Response: " + text);
+    // ❌ REMOVE ALERT (IMPORTANT)
+    // alert(JSON.stringify(data));
 
-    const data = JSON.parse(text);
-
+    // ✅ UI UPDATE
     document.getElementById("titleText").innerText = data.title || "No title";
     document.getElementById("descText").innerText = data.description || "No description";
 
-    document.getElementById("bulletsList").innerHTML =
-      (data.bullets || []).map(b=>`<li>${b}</li>`).join("");
+    const bullets = Array.isArray(data.bullets) ? data.bullets : [];
 
-    document.getElementById("resultBox").style.display="block";
+    document.getElementById("bulletsList").innerHTML =
+      bullets.map(b => `<li>${b}</li>`).join("");
+
+    document.getElementById("resultBox").style.display = "block";
 
   }catch(err){
-    alert("❌ ERROR: " + err.message);
+    alert("❌ " + err.message);
   }
 }
-
+    
 // 🔥 WINNING PRODUCTS
 async function findWinning(){
 

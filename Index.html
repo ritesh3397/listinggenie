@@ -113,28 +113,36 @@ async function handleGenerate(){
       body: JSON.stringify({ product })
     });
 
-    const text = await res.text();
+    const raw = await res.json();
 
     let data;
-    try{
-      data = JSON.parse(text);
-      
-      document.getElementById("titleText").innerText = data.title || "No title";
 
-document.getElementById("descText").innerText = data.description || "No description";
-
-const bullets = Array.isArray(data.bullets) ? data.bullets : ["No bullets"];
-
-document.getElementById("bulletsList").innerHTML =
-  bullets.map(b => `<li>${b}</li>`).join("");
-
-document.getElementById("resultBox").style.display = "block";
-      
-    }catch{
-      alert("❌ Not JSON: " + text);
-      return;
+    if(typeof raw === "string"){
+      data = JSON.parse(raw);
+    }
+    else if(typeof raw.content === "string"){
+      data = JSON.parse(raw.content);
+    }
+    else{
+      data = raw;
     }
 
+    console.log("FINAL DATA:", data);
+
+    document.getElementById("titleText").innerText = data.title || "No title";
+    document.getElementById("descText").innerText = data.description || "No description";
+
+    const bullets = Array.isArray(data.bullets) ? data.bullets : ["No bullets"];
+
+    document.getElementById("bulletsList").innerHTML =
+      bullets.map(b=>`<li>${b}</li>`).join("");
+
+    document.getElementById("resultBox").style.display="block";
+
+  }catch(err){
+    alert("❌ " + err.message);
+  }
+}
     // ✅ FIX (important)
     const result = data.listing || data;
 

@@ -12,7 +12,6 @@ export default async function handler(req, res){
       return res.status(400).json({ error: "Product required" });
     }
 
-    // 🔥 GROQ CALL
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
       headers:{
@@ -20,13 +19,13 @@ export default async function handler(req, res){
         "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192",
+        model: "llama3-8b-8192", // 🔥 CHANGE MODEL
         messages: [
           {
             role: "user",
-            content: `Create a product listing for: ${product}
+            content: `Create product listing for ${product}.
 
-Format EXACTLY like this:
+Give output in this format:
 
 Title: ...
 Description: ...
@@ -40,25 +39,53 @@ Bullets:
     });
 
     const data = await response.json();
-    
+
+    console.log("FULL API RESPONSE:", JSON.stringify(data));
+
     const content = data?.choices?.[0]?.message?.content || "";
-    
+
     console.log("AI RAW:", content);
-    
-    // 🔥 MANUAL PARSE (NO JSON NEEDED)
 
-    const titleMatch = content.match(/Title:\s*(.*)/i);
-    const descMatch = content.match(/Description:\s*([\s\S]*?)Bullets:/i);
-    const bulletsMatch = content.match(/- (.*)/g);
+    // 🔥 fallback अगर empty आया
+    if(!content){
+      return res.status(200).json({
+        title: product + " (Trending Product)",
+        description: "High quality product with great demand. Perfect for customers looking for value and performance.",
+        bullets: [
+          "High demand product",
+          "Great profit margins",
+          "Perfect for online selling"
+        ]
+      });
+    }
 
-    const title = titleMatch ? titleMatch[1].trim() : "No title";
-    const description = descMatch ? descMatch[1].trim() : "No description";
+    // 🔥 PARSE
+    let title = "No title";
+    let description = "No description";
+    let bullets = [];
 
-    const bullets = bulletsMatch
-      ? bulletsMatch.map(b => b.replace("-","").trim())
-      : ["No bullets"];
+    const lines = content.split("\n");
 
-    // ✅ FINAL RESPONSE
+    lines.forEach(line => {
+
+      if(line.toLowerCase().includes("title")){
+        title = line.split(":")[1]?.trim() || title;
+      }
+
+      else if(line.toLowerCase().includes("description")){
+        description = line.split(":")[1]?.trim() || description;
+      }
+
+      else if(line.startsWith("-")){
+        bullets.push(line.replace("-","").trim());
+      }
+
+    });
+
+    if(bullets.length === 0){
+      bullets = ["Good product", "High demand", "Best seller"];
+    }
+
     return res.status(200).json({
       title,
       description,

@@ -12,7 +12,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No product provided" });
     }
 
-    // 🔥 GROQ API CALL
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -20,31 +19,21 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192", // 🔥 changed (more stable)
+        model: "llama3-8b-8192",
         messages: [
           {
             role: "user",
-            content: `You are a top 1% e-commerce copywriter.
+            content: `Return ONLY JSON for product: ${product}
 
-Create a HIGH-CONVERTING, VIRAL product listing for: ${product}
-
-STRICT RULES:
-- Return ONLY JSON
-- No extra text
-- No explanation
-
-FORMAT:
 {
-  "title": "Catchy viral title with emotion",
-  "description": "Short persuasive description with benefits",
-  "bullets": [
-    "Benefit 1",
-    "Benefit 2",
-    "Benefit 3",
-    "Benefit 4",
-    "Benefit 5"
-  ]
+ "title": "",
+ "description": "",
+ "bullets": ["", "", "", "", ""]
 }`
+          }
+        ]
+      })
+    });
 
     const data = await response.json();
 
@@ -54,53 +43,46 @@ FORMAT:
 
     console.log("AI RAW:", content);
 
-    // 💥 FIX 1: अगर AI fail हुआ → fallback दे
+    // ✅ fallback if empty
     if (!content) {
       return res.status(200).json({
         title: product + " - Best Seller",
-        description: "High demand product with strong market potential. Perfect for selling online.",
-        bullets: [
-          "Trending product",
-          "High profit margins",
-          "Easy to sell",
-          "Viral potential",
-          "Customer favorite"
-        ]
+        description: "High demand product with strong market potential.",
+        bullets: ["Trending", "Profitable", "Viral", "Easy to sell", "High demand"]
       });
     }
 
-    // 💥 FIX 2: JSON parse safe
     let parsed;
 
     try {
       parsed = JSON.parse(content);
-    } catch {
+    } catch (e) {
+
       const match = content.match(/\{[\s\S]*\}/);
 
       if (!match) {
         return res.status(200).json({
-          title: product + " - Trending Product",
-          description: content.slice(0, 150),
-          bullets: ["High demand", "Great opportunity", "Easy selling"]
+          title: product,
+          description: content.slice(0, 120),
+          bullets: ["Good product", "High demand"]
         });
       }
 
       try {
         parsed = JSON.parse(match[0]);
-      } catch {
+      } catch (e2) {
         return res.status(200).json({
-          title: product + " - Viral Product",
-          description: content.slice(0, 150),
-          bullets: ["Hot product", "Market demand", "Good margins"]
+          title: product,
+          description: content.slice(0, 120),
+          bullets: ["Trending", "Popular"]
         });
       }
     }
 
-    // 💥 FIX 3: field fallback
     return res.status(200).json({
-      title: parsed?.title || parsed?.Title || product + " Product",
-      description: parsed?.description || parsed?.desc || "High quality product",
-      bullets: parsed?.bullets || parsed?.points || ["Trending", "Profitable", "Popular"]
+      title: parsed.title || product,
+      description: parsed.description || "Good product",
+      bullets: parsed.bullets || ["Trending", "Profitable"]
     });
 
   } catch (err) {

@@ -19,9 +19,7 @@ body{
   padding:20px;
 }
 
-h1{
-  text-align:center;
-}
+h1{text-align:center;}
 
 input, button{
   width:100%;
@@ -60,7 +58,6 @@ button{
 
 <h1>🚀 ListingGennie</h1>
 
-<!-- INPUT -->
 <input id="productName" placeholder="Enter product name">
 
 <button onclick="handleGenerate()">✨ Generate Listing</button>
@@ -120,7 +117,7 @@ async function handleGenerate(){
     if(typeof raw === "string"){
       data = JSON.parse(raw);
     }
-    else if(typeof raw.content === "string"){
+    else if(raw.content){
       data = JSON.parse(raw.content);
     }
     else{
@@ -133,23 +130,6 @@ async function handleGenerate(){
     document.getElementById("descText").innerText = data.description || "No description";
 
     const bullets = Array.isArray(data.bullets) ? data.bullets : ["No bullets"];
-
-    document.getElementById("bulletsList").innerHTML =
-      bullets.map(b=>`<li>${b}</li>`).join("");
-
-    document.getElementById("resultBox").style.display="block";
-
-  }catch(err){
-    alert("❌ " + err.message);
-  }
-}
-    // ✅ FIX (important)
-    const result = data.listing || data;
-
-    document.getElementById("titleText").innerText = result.title || "No title";
-    document.getElementById("descText").innerText = result.description || "No description";
-
-    const bullets = Array.isArray(result.bullets) ? result.bullets : ["No bullets"];
 
     document.getElementById("bulletsList").innerHTML =
       bullets.map(b=>`<li>${b}</li>`).join("");
@@ -175,15 +155,7 @@ async function findWinning(){
       headers:{ "Content-Type":"application/json" }
     });
 
-    const text = await res.text();
-
-    let data;
-    try{
-      data = JSON.parse(text);
-    }catch{
-      box.innerHTML = "❌ Not JSON<br>"+text;
-      return;
-    }
+    const data = await res.json();
 
     box.innerHTML = "";
 
@@ -204,7 +176,7 @@ async function findWinning(){
 }
 
 
-// 🔥 COPY FIX (no popup)
+// 🔥 COPY
 function copyText(id,btn){
 
   const text = document.getElementById(id).innerText;

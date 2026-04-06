@@ -110,7 +110,22 @@ async function handleGenerate(){
       body: JSON.stringify({ product })
     });
 
-    const data = await res.json();
+    const res = await fetch("/api/generate",{
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body: JSON.stringify({ product })
+});
+
+const text = await res.text();
+
+let data;
+
+try {
+  data = JSON.parse(text);
+} catch {
+  alert("❌ Server not JSON:\n" + text);
+  return;
+}
 
     console.log("DATA:", data);
 

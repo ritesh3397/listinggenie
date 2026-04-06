@@ -1,6 +1,5 @@
 export default async function handler(req, res){
 
-  // ✅ only POST allowed
   if(req.method !== "POST"){
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -13,7 +12,7 @@ export default async function handler(req, res){
       return res.status(400).json({ error: "Product required" });
     }
 
-    // 🔥 CALL GROQ API
+    // 🔥 GROQ CALL
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
       headers:{
@@ -24,19 +23,17 @@ export default async function handler(req, res){
         model: "llama3-70b-8192",
         messages: [
           {
-            role: "system",
-            content: "You are an ecommerce copywriter. Return ONLY JSON."
-          },
-          {
             role: "user",
-            content: `Generate product listing for: ${product}
+            content: `Create a product listing for: ${product}
 
-Return ONLY this format:
-{
-  "title": "...",
-  "description": "...",
-  "bullets": ["...", "...", "..."]
-}`
+Format EXACTLY like this:
+
+Title: ...
+Description: ...
+Bullets:
+- ...
+- ...
+- ...`
           }
         ]
       })
@@ -44,32 +41,27 @@ Return ONLY this format:
 
     const data = await response.json();
 
-    // 🔥 GET CONTENT
     const content = data?.choices?.[0]?.message?.content || "";
 
-    // 🔥 EXTRACT JSON SAFELY
-    const match = content.match(/\{[\s\S]*\}/);
+    // 🔥 MANUAL PARSE (NO JSON NEEDED)
 
-    if(!match){
-      return res.status(500).json({
-        error: "No JSON found",
-        raw: content
-      });
-    }
+    const titleMatch = content.match(/Title:\s*(.*)/i);
+    const descMatch = content.match(/Description:\s*([\s\S]*?)Bullets:/i);
+    const bulletsMatch = content.match(/- (.*)/g);
 
-    let parsed;
+    const title = titleMatch ? titleMatch[1].trim() : "No title";
+    const description = descMatch ? descMatch[1].trim() : "No description";
 
-    try{
-      parsed = JSON.parse(match[0]);
-    }catch(err){
-      return res.status(500).json({
-        error: "Invalid JSON",
-        raw: content
-      });
-    }
+    const bullets = bulletsMatch
+      ? bulletsMatch.map(b => b.replace("-","").trim())
+      : ["No bullets"];
 
     // ✅ FINAL RESPONSE
-    return res.status(200).json(parsed);
+    return res.status(200).json({
+      title,
+      description,
+      bullets
+    });
 
   }catch(err){
     return res.status(500).json({ error: err.message });

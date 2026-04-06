@@ -24,20 +24,27 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "user",
-            content: `You are a professional e-commerce copywriter.
+            content: `You are a top 1% e-commerce copywriter.
 
-Create a HIGH-CONVERTING product listing for: ${product}
+Create a HIGH-CONVERTING, VIRAL product listing for: ${product}
 
-Return ONLY JSON like:
+STRICT RULES:
+- Return ONLY JSON
+- No extra text
+- No explanation
+
+FORMAT:
 {
-  "title": "",
-  "description": "",
-  "bullets": ["", "", "", "", ""]
+  "title": "Catchy viral title with emotion",
+  "description": "Short persuasive description with benefits",
+  "bullets": [
+    "Benefit 1",
+    "Benefit 2",
+    "Benefit 3",
+    "Benefit 4",
+    "Benefit 5"
+  ]
 }`
-          }
-        ]
-      })
-    });
 
     const data = await response.json();
 
